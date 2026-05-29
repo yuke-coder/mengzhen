@@ -103,14 +103,14 @@ export default function RootLayout({
                     urls: ['/', '/settings']
                   });
                 }
-                // 检测到新版本 SW 时自动激活并刷新
+                // 检测到新版本 SW 时
                 registration.addEventListener('updatefound', function() {
                   var newWorker = registration.installing;
                   newWorker.addEventListener('statechange', function() {
                     if (newWorker.state === 'activated') {
-                      // 新 SW 已激活，提示用户刷新或自动刷新
-                      console.log('New SW activated, reloading for latest version');
-                      window.location.reload();
+                      // 新 SW 已激活，等待用户手动刷新页面获取新版本
+                      // 不自动刷新，避免打断用户操作
+                      console.log('New SW activated, waiting for user refresh');
                     }
                   });
                 });
