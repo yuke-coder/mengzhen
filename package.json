@@ -7,7 +7,8 @@
     "dev": "npx next dev --port 5000",
     "lint": "eslint",
     "start": "bash ./scripts/start.sh",
-    "ts-check": "tsc -p tsconfig.json"
+    "ts-check": "tsc -p tsconfig.json",
+    "export": "next build && next export -o out"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
