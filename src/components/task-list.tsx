@@ -69,20 +69,8 @@ function formatCountdownTime(ms: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function StatusBadge({ task }: { task: ScheduledTask }) {
+function StatusBadge({ task, status, phase }: { task: ScheduledTask; status: TaskStatus; phase: TaskExecPhase | "idle" }) {
   const scheduler = useMemo(() => getTaskScheduler(), []);
-  const [status, setStatus] = useState<TaskStatus>(() => {
-    const phase = scheduler.getTaskPhase(task.id);
-    if (phase === 'fading-in' || phase === 'playing' || phase === 'fading-out') return 'executing';
-    return getTaskStatus(task);
-  });
-  const [phase, setPhase] = useState<TaskExecPhase | "idle">(() => {
-    const p = scheduler.getTaskPhase(task.id);
-    if (p === 'fading-in' || p === 'playing' || p === 'fading-out') return p;
-    const s = getTaskStatus(task);
-    if (s === "pending") return "waiting";
-    return "idle";
-  });
 
   const getTaskStartTimestamp = useCallback((t: ScheduledTask) => {
     return new Date(
@@ -109,7 +97,6 @@ function StatusBadge({ task }: { task: ScheduledTask }) {
     }
 
     if (s === "executing") {
-      // 优先使用实际执行时间（立即执行时 lastExecutedAt != startTime）
       const actualStart = task.lastExecutedAt || getTaskStartTimestamp(task);
       const endTime = actualStart + task.playDurationMinutes * 60 * 1000;
       const fadeInMs = (task.fadeInDuration || 0) * 1000;
@@ -138,10 +125,33 @@ function StatusBadge({ task }: { task: ScheduledTask }) {
     return 0;
   }, [task, getTaskStartTimestamp]);
 
-  const [remainingMs, setRemainingMs] = useState(() => computeRemaining(
-    scheduler.getTaskPhase(task.id) === 'fading-in' || scheduler.getTaskPhase(task.id) === 'playing' || scheduler.getTaskPhase(task.id) === 'fading-out' ? 'executing' : getTaskStatus(task),
-    scheduler.getTaskPhase(task.id) === 'fading-in' || scheduler.getTaskPhase(task.id) === 'playing' || scheduler.getTaskPhase(task.id) === 'fading-out' ? scheduler.getTaskPhase(task.id) as TaskExecPhase : (getTaskStatus(task) === "pending" ? "waiting" : "idle")
-  ));
+  const [remainingMs, setRemainingMs] = useState(() => computeRemaining(status, phase));
+
+  const isActive = status === "executing" || status === "pending" || (status === "completed" && task.repeatType !== "once") || (status === "cancelled" && !!task.skipUntil);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    const update = () => {
+      setRemainingMs(computeRemaining(status, phase));
+    };
+
+    update();
+    const interval = isActive && status === "executing" ? 1000 : 5000;
+    const timer = setInterval(update, interval);
+    return () => clearInterval(timer);
+  }, [status, phase, isActive, computeRemaining]);
+
+  useEffect(() => {
+    const handleEvent = (event: SchedulerEvent) => {
+      if (event.taskId !== task.id) return;
+      if (event.type === "tick" || event.type === "phase-change") {
+        setRemainingMs(computeRemaining(status, phase));
+      }
+    };
+    const unsub = scheduler.on(handleEvent);
+    return () => { unsub(); };
+  }, [task.id, status, phase, scheduler, computeRemaining]);
 
   const relativeTime = useMemo(() => {
     if (status === "pending") {
@@ -168,76 +178,6 @@ function StatusBadge({ task }: { task: ScheduledTask }) {
       return "已取消";
     }
   }, [status, phase, remainingMs, task.repeatType]);
-
-  useEffect(() => {
-    const update = () => {
-      const currentPhase = scheduler.getTaskPhase(task.id);
-      let newStatus: TaskStatus;
-
-      if (currentPhase === 'fading-in' || currentPhase === 'playing' || currentPhase === 'fading-out') {
-        newStatus = 'executing';
-      } else {
-        const latestTask = getAllTasks().find(t => t.id === task.id);
-        newStatus = getTaskStatus(latestTask || task);
-      }
-
-      setStatus(newStatus);
-      setPhase(currentPhase);
-      setRemainingMs(computeRemaining(newStatus, currentPhase));
-    };
-
-    update();
-    const timer = setInterval(update, 1000);
-    return () => clearInterval(timer);
-  }, [task, scheduler, computeRemaining]);
-
-  useEffect(() => {
-    const handleEvent = (event: SchedulerEvent) => {
-      if (event.taskId !== task.id) return;
-      if (event.type === "phase-change") {
-        const newPhase = event.phase as TaskExecPhase | "idle";
-        let newStatus: TaskStatus;
-        if (newPhase === "fading-in" || newPhase === "playing" || newPhase === "fading-out") {
-          newStatus = "executing";
-        } else {
-          const latestTask = getAllTasks().find(t => t.id === task.id);
-          newStatus = getTaskStatus(latestTask || task);
-        }
-        setPhase(newPhase);
-        setStatus(newStatus);
-        setRemainingMs(computeRemaining(newStatus, newPhase));
-      } else if (event.type === "tick") {
-        setRemainingMs(computeRemaining(status, phase));
-      } else if (event.type === "task-started") {
-        const newPhase = event.phase as TaskExecPhase;
-        setStatus("executing");
-        setPhase(newPhase);
-        setRemainingMs(computeRemaining("executing", newPhase));
-      } else if (event.type === "task-completed") {
-        setStatus("completed");
-        setPhase("idle");
-        setRemainingMs(0);
-      } else if (event.type === "task-cancelled") {
-        setStatus("cancelled");
-        setPhase("idle");
-        const latestTask = getAllTasks().find(t => t.id === task.id);
-        const updatedTask = latestTask || task;
-        if (updatedTask.skipUntil) {
-          setRemainingMs(Math.max(0, updatedTask.skipUntil - Date.now()));
-        } else {
-          setRemainingMs(0);
-        }
-      } else if (event.type === "task-resumed") {
-        const latestTask = getAllTasks().find(t => t.id === task.id);
-        const newStatus = getTaskStatus(latestTask || task);
-        setStatus(newStatus);
-        setPhase("waiting");
-        setRemainingMs(computeRemaining(newStatus, "waiting"));
-      }
-    };
-    const unsub = scheduler.on(handleEvent);
-    return () => { unsub(); };
-  }, [task.id, task, scheduler, computeRemaining, status, phase]);
 
   const config = useMemo(() => {
     if (status === "pending") {
