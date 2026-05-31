@@ -146,7 +146,9 @@ export function AudioSection({
         return `文件大小超过 ${MAX_FILE_SIZE / (1024 * 1024)}MB 限制`;
       }
       const ext = "." + file.name.split(".").pop()?.toLowerCase();
-      if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(ext)) {
+      const typeOk = ALLOWED_TYPES.includes(file.type) || file.type.startsWith('audio/') || file.type === '';
+      const extOk = ALLOWED_EXTENSIONS.includes(ext);
+      if (!typeOk && !extOk) {
         return `不支持的音频格式，请上传 ${ALLOWED_EXTENSIONS.join(", ")} 文件`;
       }
       if (audios.some((a) => a.file.name === file.name)) {
