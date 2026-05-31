@@ -8,6 +8,7 @@ import { MindMapTemplate } from "@/lib/mindmap-types";
 import { TemplateSelector } from "@/components/template-selector";
 import RippleButton from "@/components/RippleButton";
 import { Button } from "@/components/ui/button";
+import LazySection from "@/components/lazy-section";
 import { useTheme, type Theme } from "@/lib/theme-context";
 
 import {
