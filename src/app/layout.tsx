@@ -1,12 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-context";
 import { AuthProvider } from "@/lib/auth-context";
-import RippleEffect from "@/components/RippleEffect";
-import DynamicBackground from "@/components/dynamic-background";
 import Navbar from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
+
+const DynamicBackground = dynamic(() => import("@/components/dynamic-background"), {
+  ssr: false,
+  loading: () => <div className="fixed inset-0 z-0" />,
+});
+
+const RippleEffect = dynamic(() => import("@/components/RippleEffect"), {
+  ssr: false,
+});
 
 export const viewport: Viewport = {
   themeColor: [
