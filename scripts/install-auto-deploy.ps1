@@ -1,6 +1,13 @@
 $TaskName = "MengzhenAutoDeploy"
 $ScriptPath = "D:\梦枕\projects\scripts\auto-deploy.ps1"
 
+$pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
+if (-not $pwshCmd) {
+    Write-Host "ERROR: pwsh (PowerShell 7) not found!" -ForegroundColor Red
+    Write-Host "Please install PowerShell 7: https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows" -ForegroundColor Yellow
+    exit 1
+}
+
 $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 if ($existingTask) {
     Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
@@ -8,10 +15,8 @@ if ($existingTask) {
     Write-Host "Removed existing task: $TaskName"
 }
 
-$pwshPath = (Get-Command powershell.exe).Source
-
 $Action = New-ScheduledTaskAction `
-    -Execute $pwshPath `
+    -Execute $pwshCmd.Source `
     -Argument "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File `"$ScriptPath`"" `
     -WorkingDirectory "D:\梦枕\projects"
 
@@ -43,6 +48,7 @@ Register-ScheduledTask `
 Write-Host ""
 Write-Host "===== Task Registered =====" -ForegroundColor Green
 Write-Host "  Name:    $TaskName"
+Write-Host "  Engine:  $($pwshCmd.Source)"
 Write-Host "  Script:  $ScriptPath"
 Write-Host "  Trigger: At user logon"
 Write-Host "  Log:     D:\梦枕\auto-deploy.log"
