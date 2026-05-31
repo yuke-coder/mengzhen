@@ -639,6 +639,7 @@ export default function HomePage() {
                     </div>
                 </section>
                 {}
+                <LazySection>
                 <section id="features" className="py-32 px-6 relative overflow-hidden">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full bg-gradient-radial from-[var(--brand-glow)]/8 via-transparent to-transparent blur-3xl" />
