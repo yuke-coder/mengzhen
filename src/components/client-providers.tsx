@@ -14,7 +14,7 @@ const RippleEffect = dynamic(() => import("@/components/RippleEffect"), {
 export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <div className="fixed inset-0 overflow-hidden z-0">
+      <div className="fixed inset-0 overflow-hidden z-0 pointer-events-none">
         <DynamicBackground />
       </div>
       {children}
