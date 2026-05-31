@@ -832,7 +832,6 @@ export function AudioUpload({
     (id: string) => {
       const audio = audios.find((a) => a.id === id);
       if (audio) {
-        // 先暂停并释放 audio 元素，再撤销 blob URL
         if (audioRefs.current[id]) {
           audioRefs.current[id].pause();
           audioRefs.current[id].removeAttribute('src');
@@ -841,6 +840,11 @@ export function AudioUpload({
         }
         if (audio.url && audio.url.startsWith("blob:")) {
           URL.revokeObjectURL(audio.url);
+        }
+        if (audio.dbKey) {
+          deleteAudioBlob(audio.dbKey).catch((err) =>
+            console.warn("[handleRemove] IndexedDB 清理失败:", err)
+          );
         }
       }
       setAudios((prev) => prev.filter((a) => a.id !== id));
