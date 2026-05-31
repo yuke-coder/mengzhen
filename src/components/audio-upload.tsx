@@ -1295,12 +1295,13 @@ export function AudioUpload({
 
       const response = JSON.parse(xhr.responseText);
       if (response.success) {
-        setAudios((prev) =>
-          prev.map((a) =>
+        setAudios((prev) => {
+          const updated = prev.map((a) =>
             a.id === id ? { ...a, serverUrl: response.audio_url, fileKey: response.file_key, uploading: false, uploadProgress: 100, savedToFiles: true } : a
-          )
-        );
-        onAudioUploaded?.(audios.filter((a) => a.serverUrl || a.id === id));
+          );
+          onAudioUploaded?.(updated);
+          return updated;
+        });
       } else {
         setAudios((prev) =>
           prev.map((a) => (a.id === id ? { ...a, uploading: false, uploadError: response.error || "上传失败" } : a))
