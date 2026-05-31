@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     // 解析 FormData
     const formData = await request.formData();
     const file = formData.get("audio") as File | null;
-    const saveToFiles = formData.get("save_to_files") === "true";
+    const saveToFiles = new URL(request.url).searchParams.get("save_to_files") === "true";
 
     if (!file) {
       return NextResponse.json(
