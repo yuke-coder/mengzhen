@@ -39,8 +39,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = useCallback((newTheme: Theme) => {
     console.log("ThemeContext: setTheme called with", newTheme);
+    document.body.classList.add('theme-transitioning');
     setThemeState(newTheme);
     try { localStorage.setItem("theme", newTheme); } catch {}
+    setTimeout(() => {
+      document.body.classList.remove('theme-transitioning');
+    }, 350);
   }, []);
 
   useEffect(() => {
