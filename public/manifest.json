@@ -11,29 +11,35 @@
   "icons": [
     {
       "src": "/favicon.png",
-      "sizes": "192x192",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/favicon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ],
   "categories": ["health", "lifestyle", "utilities"],
   "lang": "zh-CN",
   "dir": "ltr",
   "prefer_related_applications": false,
-  "screenshots": [],
   "shortcuts": [
     {
-      "name": "开始使用",
-      "short_name": "使用",
-      "description": "打开梦枕创作页面",
+      "name": "定时播放",
+      "short_name": "定时",
+      "description": "设置定时音频播放",
       "url": "/settings",
-      "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/favicon.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "音频管理",
+      "short_name": "音频",
+      "description": "管理音频文件和播放列表",
+      "url": "/settings?tab=audio",
+      "icons": [{ "src": "/favicon.png", "sizes": "512x512" }]
     }
   ],
   "share_target": {
