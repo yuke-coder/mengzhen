@@ -404,15 +404,6 @@
   *:hover {
     transition-duration: 0ms !important;
   }
-}
-
-@media (min-width: 768px) {
-  button,
-  [role="button"],
-  a {
-    transition: all 0.2s ease;
-  }
-}
 
   /* 确保所有可点击元素满足44px最小触控区域 */
   button,
