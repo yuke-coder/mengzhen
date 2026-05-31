@@ -480,7 +480,17 @@ export function AudioSection({
           setDragOver(false);
           processFiles(e.dataTransfer.files);
         }}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          requestAnimationFrame(() => {
+            const input = fileInputRef.current;
+            if (input) {
+              input.value = '';
+              input.click();
+            }
+          });
+        }}
         className={cn(
           "relative p-6 rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer",
           "hover:border-[var(--brand-glow)]/60 hover:bg-[var(--brand-glow)]/5",
@@ -490,13 +500,18 @@ export function AudioSection({
         <input
           ref={fileInputRef}
           type="file"
-          accept={ACCEPTED_TYPES.join(",")}
+          accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac"
           multiple
           onChange={(e) => {
+            e.stopPropagation();
             if (e.target.files) processFiles(e.target.files);
-            if (fileInputRef.current) fileInputRef.current.value = "";
+            setTimeout(() => {
+              try {
+                if (fileInputRef.current) fileInputRef.current.value = "";
+              } catch {}
+            }, 300);
           }}
-          className="hidden"
+          style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', whiteSpace: 'nowrap' }}
         />
         <div className="flex flex-col items-center gap-2.5">
           <div

@@ -1542,20 +1542,20 @@ function CreatePageContent() {
                                                 console.log("音频已移除:", id);
                                             }}
                                         >
-                                            <div className="space-y-6">
-                                                <div className="space-y-4">
+                                            <div className="space-y-5 sm:space-y-6">
+                                                <div className="space-y-4 sm:space-y-4 pt-2 sm:pt-0">
                                                     <button
                                                         onClick={() => {
                                                             setEditingTask(null);
                                                             setShowTaskForm(true);
                                                         }}
-                                                        className="w-full relative overflow-hidden px-5 py-3.5 rounded-xl font-bold text-sm transition-all duration-300 transform text-[#050510] hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
+                                                        className="w-full relative overflow-hidden px-5 sm:px-5 py-4 sm:py-3.5 rounded-xl sm:rounded-xl font-bold text-sm transition-all duration-300 transform text-[#050510] hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
                                                         style={{
                                                             background: "linear-gradient(135deg, #00d4aa 0%, #00b894 50%, #00d4aa 100%)",
                                                             boxShadow: "0 4px 15px rgba(0, 212, 170, 0.3)",
                                                         }}
                                                     >
-                                                        <Plus className="w-4 h-4" />
+                                                        <Plus className="w-4 h-4 sm:w-4 sm:h-4" />
                                                         新建任务
                                                     </button>
 

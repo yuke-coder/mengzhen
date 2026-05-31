@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
-import "element-plus/dist/index.css";
 import { ThemeProvider } from "@/lib/theme-context";
 import { AuthProvider } from "@/lib/auth-context";
 import RippleEffect from "@/components/RippleEffect";
@@ -48,6 +47,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <link rel="prefetch" href="/settings" />
+        <link rel="prefetch" href="/templates" />
+        <link rel="dns-prefetch" href="https://br-epic-clam-5a2fd709.supabase2.aidap-global.cn-beijing.volces.com" />
+      </head>
       <body suppressHydrationWarning>
         {/* beforeInteractive: 在页面水合前执行，读取 localStorage 设置主题 class */}
         <Script
@@ -94,38 +98,43 @@ export default function RootLayout({
         <Script id="sw-register" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                console.log('SW registered:', registration.scope);
-                // Pre-cache critical pages after registration
+              var refreshing = false;
+              navigator.serviceWorker.addEventListener('controllerchange', function() {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+              });
+
+              navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(function(registration) {
                 if (registration.active) {
                   registration.active.postMessage({
                     type: 'CACHE_URLS',
-                    urls: ['/', '/settings']
+                    urls: ['/', '/settings', '/templates']
                   });
+                  registration.active.postMessage({ type: 'CLEAR_OLD_CACHES' });
                 }
-                // 检测到新版本 SW 时
+
                 registration.addEventListener('updatefound', function() {
                   var newWorker = registration.installing;
                   newWorker.addEventListener('statechange', function() {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                    }
                     if (newWorker.state === 'activated') {
-                      // 新 SW 已激活，等待用户手动刷新页面获取新版本
-                      // 不自动刷新，避免打断用户操作
-                      console.log('New SW activated, waiting for user refresh');
+                      if (registration.active) {
+                        registration.active.postMessage({ type: 'CLEAR_OLD_CACHES' });
+                      }
                     }
                   });
                 });
-                // 定期检查更新（每30分钟）
+
+                registration.update();
+
                 setInterval(function() {
                   registration.update();
-                }, 30 * 60 * 1000);
+                }, 5 * 60 * 1000);
               }).catch(function(error) {
                 console.log('SW registration failed:', error);
-              });
-              // Listen for messages from Service Worker
-              navigator.serviceWorker.addEventListener('message', function(event) {
-                if (event.data && event.data.type === 'CACHE_COMPLETE') {
-                  console.log('Pages cached:', event.data.pages);
-                }
               });
             });
           }

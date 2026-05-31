@@ -1,22 +1,29 @@
-// 缓存版本号 - 每次部署时由构建脚本自动更新
-// 格式: mengzhen-v{timestamp}
-const CACHE_VERSION = 'v4';
-const CACHE_NAME = 'mengzhen-' + CACHE_VERSION;
+const CACHE_VERSION = 'v8';
 const STATIC_CACHE = 'mengzhen-static-' + CACHE_VERSION;
 const AUDIO_CACHE = 'mengzhen-audio-' + CACHE_VERSION;
 const API_CACHE = 'mengzhen-api-' + CACHE_VERSION;
 
 const CRITICAL_ASSETS = [
   '/',
+  '/settings',
   '/manifest.json',
   '/favicon.png',
 ];
+
+const MAX_CACHE_AGE = 7 * 24 * 60 * 60 * 1000;
+const HTML_MAX_AGE = 24 * 60 * 60 * 1000;
+
+const SUPABASE_HOSTNAMES = ['supabase', 'supabase2', 'aidap-global'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then(async (cache) => {
       for (const url of CRITICAL_ASSETS) {
-        try { await cache.add(url); } catch (e) {}
+        try {
+          await cache.add(new Request(url, { cache: 'reload' }));
+        } catch (e) {
+          console.warn('[SW] 预缓存失败:', url, e);
+        }
       }
       self.skipWaiting();
     })
@@ -28,13 +35,13 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) =>
-            name !== CACHE_NAME &&
-            name !== STATIC_CACHE &&
-            name !== AUDIO_CACHE &&
-            name !== API_CACHE
-          )
-          .map((name) => caches.delete(name))
+          .filter((name) => {
+            return !name.includes(CACHE_VERSION);
+          })
+          .map((name) => {
+            console.log('[SW] 删除旧缓存:', name);
+            return caches.delete(name);
+          })
       );
     }).then(() => {
       return self.clients.claim();
@@ -42,55 +49,34 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function isCacheFresh(cached, maxAge) {
+  if (!cached) return false;
+  const dateHeader = cached.headers.get('date');
+  if (!dateHeader) return true;
+  const cacheTime = new Date(dateHeader).getTime();
+  return (Date.now() - cacheTime) < (maxAge || MAX_CACHE_AGE);
+}
+
+function isSupabaseRequest(url) {
+  return SUPABASE_HOSTNAMES.some(h => url.hostname.includes(h));
+}
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  if (event.request.url.match(/\.(mp3|wav|flac|ogg|m4a|aac)$/i)) {
-    event.respondWith(
-      caches.open(AUDIO_CACHE).then((cache) => {
-        return cache.match(event.request).then((cached) => {
-          const fetchPromise = fetch(event.request).then((response) => {
-            if (response.ok) {
-              cache.put(event.request, response.clone());
-            }
-            return response;
-          }).catch(() => null);
-
-          return cached || fetchPromise;
-        });
-      })
-    );
-    return;
-  }
-
   if (event.request.method !== 'GET') return;
 
-  if (url.origin !== location.origin) {
-    event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-
-        return fetch(event.request).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => {
-              cache.put(event.request, clone);
-            });
-          }
-          return response;
-        }).catch(() => {
-          return new Response('', { status: 200 });
-        });
-      })
-    );
-    return;
-  }
+  if (isSupabaseRequest(url)) return;
 
   if (url.pathname.startsWith('/api/')) {
+    if (url.pathname.includes('/storage/') || url.pathname.includes('/audio/proxy')) {
+      return;
+    }
+
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { signal: AbortSignal.timeout(8000) })
         .then((response) => {
-          if (response.ok) {
+          if (response.ok && response.status < 300) {
             const clone = response.clone();
             caches.open(API_CACHE).then((cache) => {
               cache.put(event.request, clone);
@@ -111,9 +97,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (event.request.url.match(/\.(mp3|wav|flac|ogg|m4a|aac)$/i) && url.origin === location.origin) {
+    event.respondWith(
+      caches.open(AUDIO_CACHE).then((cache) => {
+        return cache.match(event.request).then((cached) => {
+          if (cached && isCacheFresh(cached)) return cached;
+          return fetch(event.request).then((response) => {
+            if (response.ok) {
+              cache.put(event.request, response.clone());
+            }
+            return response;
+          }).catch(() => cached || new Response('', { status: 503 }));
+        });
+      })
+    );
+    return;
+  }
+
+  if (url.origin !== location.origin) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached && isCacheFresh(cached)) return cached;
+        return fetch(event.request, { signal: AbortSignal.timeout(5000) }).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(event.request, clone);
+            });
+          }
+          return response;
+        }).catch(() => {
+          if (cached) return cached;
+          return new Response('', { status: 200 });
+        });
+      })
+    );
+    return;
+  }
+
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { signal: AbortSignal.timeout(10000) })
         .then((response) => {
           if (response.ok) {
             const clone = response.clone();
@@ -128,7 +152,7 @@ self.addEventListener('fetch', (event) => {
             if (cached) return cached;
             return caches.match('/').then((homePage) => {
               if (homePage) return homePage;
-              return new Response('Offline - Please check your connection', {
+              return new Response('Offline', {
                 status: 503,
                 headers: { 'Content-Type': 'text/html' }
               });
@@ -139,9 +163,40 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(event.request, clone);
+            });
+          }
+          return response;
+        }).catch(() => {
+          return new Response('', { status: 200 });
+        });
+      })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+      if (cached) {
+        if (event.request.url.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff2?|ttf|eot)$/i)) {
+          fetch(event.request).then((response) => {
+            if (response.ok) {
+              caches.open(STATIC_CACHE).then((cache) => {
+                cache.put(event.request, response);
+              });
+            }
+          }).catch(() => {});
+        }
+        return cached;
+      }
 
       return fetch(event.request).then((response) => {
         if (response.ok && event.request.url.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff2?|ttf|eot)$/i)) {
@@ -158,16 +213,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'audio-sync') {
-    event.waitUntil(syncAudioData());
-  }
-});
-
-async function syncAudioData() {
-  console.log('Syncing audio data...');
-}
-
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -179,6 +224,16 @@ self.addEventListener('message', (event) => {
         event.data.urls.map((url) =>
           cache.add(url).catch(() => null)
         )
+      );
+    });
+  }
+
+  if (event.data && event.data.type === 'CLEAR_OLD_CACHES') {
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => !name.includes(CACHE_VERSION))
+          .map((name) => caches.delete(name))
       );
     });
   }

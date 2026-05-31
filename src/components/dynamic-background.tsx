@@ -35,12 +35,9 @@ export default function DynamicBackground() {
   if (pathname?.startsWith('/auth/')) return null;
 
   if (isDark) {
-    // 暗色模式 - 星空背景
     return (
       <>
         <style jsx>{`
-          @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
-          
           .star-container {
             position: fixed;
             top: 0;
@@ -125,12 +122,9 @@ export default function DynamicBackground() {
     );
   }
 
-  // 亮色模式 - 网格滚动背景
   return (
     <>
       <style jsx>{`
-        @import url('https://fonts.googleapis.com/css2?family=Exo:wght@100&display=swap');
-        
         .grid-container {
           position: fixed;
           top: 0;
@@ -138,7 +132,6 @@ export default function DynamicBackground() {
           width: 100%;
           height: 100%;
           z-index: -1;
-          /* 网格背景 - 使用 data URI */
           background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC") repeat 0 0;
           background-color: #ffffff;
           animation: bg-scrolling-reverse 0.92s infinite linear;
@@ -150,7 +143,6 @@ export default function DynamicBackground() {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          font-family: 'Exo', sans-serif;
           font-size: 8rem;
           font-weight: 100;
           font-style: normal;

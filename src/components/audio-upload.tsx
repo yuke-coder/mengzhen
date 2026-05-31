@@ -660,7 +660,11 @@ export function AudioUpload({
       return `文件大小超过 ${MAX_FILE_SIZE / (1024 * 1024)}MB 限制`;
     }
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(ext)) {
+    // PWA standalone 模式下，部分浏览器可能不报告 MIME 类型（file.type 为空）
+    // 此时仅通过扩展名验证
+    const typeOk = ALLOWED_TYPES.includes(file.type) || file.type.startsWith('audio/') || file.type === '';
+    const extOk = ALLOWED_EXTENSIONS.includes(ext);
+    if (!typeOk && !extOk) {
       return `不支持的音频格式，请上传 ${ALLOWED_EXTENSIONS.join(", ")} 文件`;
     }
     if (audios.some((a) => a.file.name === file.name)) {
@@ -798,8 +802,18 @@ export function AudioUpload({
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) processFiles(e.target.files);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      e.stopPropagation();
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        processFiles(files);
+      }
+      setTimeout(() => {
+        if (fileInputRef.current) {
+          try {
+            fileInputRef.current.value = "";
+          } catch {}
+        }
+      }, 300);
     },
     [processFiles]
   );
@@ -1647,12 +1661,12 @@ export function AudioUpload({
       {/* 注入拖拽样式 */}
       <style dangerouslySetInnerHTML={{ __html: dragStyles }} />
 
-      <div className="space-y-4">
+      <div className="space-y-5 sm:space-y-6">
 
         {/* 模式切换 - 固定显示 */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2.5 pb-4 sm:pb-0 border-b border-border/40 sm:border-0">
           <ModeSwitch mode={mode} onModeChange={onModeChange || (() => {})} />
-          <p className="text-xs text-muted-foreground/60 text-center">
+          <p className="text-xs text-muted-foreground/60 text-center leading-relaxed px-4">
             {mode === "default"
               ? "设置开始和结束时间，快速启动播放"
               : "创建定时任务，支持重复执行和任务管理"}
@@ -1673,12 +1687,20 @@ export function AudioUpload({
           e.preventDefault();
           processFiles(e.dataTransfer.files);
         }}
-        onClick={() => {
+        onClick={(e) => {
           if (disabled) return;
-          fileInputRef.current?.click();
+          e.preventDefault();
+          e.stopPropagation();
+          requestAnimationFrame(() => {
+            const input = fileInputRef.current;
+            if (input) {
+              input.value = '';
+              input.click();
+            }
+          });
         }}
         className={cn(
-          "relative p-8 rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer",
+          "relative p-8 sm:p-8 rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer",
           "hover:border-[var(--brand-glow)]/60 hover:bg-[var(--brand-glow)]/5",
           dragOver && !disabled && "border-[var(--brand-glow)] bg-[var(--brand-glow)]/10 scale-[1.02]",
           disabled && "opacity-50 cursor-not-allowed"
@@ -1687,20 +1709,20 @@ export function AudioUpload({
         <input
           ref={fileInputRef}
           type="file"
-          accept={ACCEPTED_TYPES.join(',')}
+          accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac"
           multiple
           onChange={handleFileSelect}
-          className="hidden"
+          style={{ position: 'absolute', width: 1, height: 1, opacity: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', whiteSpace: 'nowrap' }}
         />
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 sm:gap-3 py-2 sm:py-0">
           <div className={cn(
-            "p-3 rounded-full bg-[var(--brand-glow)]/10 transition-transform duration-300",
+            "p-3 sm:p-3 rounded-full bg-[var(--brand-glow)]/10 transition-transform duration-300",
             dragOver && !disabled && "scale-110"
           )}>
-            <Upload className="w-6 h-6 text-[var(--brand-glow)]" />
+            <Upload className="w-6 h-6 sm:w-6 sm:h-6 text-[var(--brand-glow)]" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-medium text-foreground leading-relaxed px-2">
               {disabled ? "请先登录" : dragOver ? "松开以上传" : "点击或拖拽音频文件到此处"}
             </p>
             {audios.length > 0 && (

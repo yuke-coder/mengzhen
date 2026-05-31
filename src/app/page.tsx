@@ -326,7 +326,6 @@ export default function HomePage() {
     const router = useRouter();
     const { setTheme, resolvedTheme } = useTheme();
     
-    console.log("HomePage 渲染, resolvedTheme:", resolvedTheme, "setTheme:", typeof setTheme);
     const [selectedTemplates, setSelectedTemplates] = useState<MindMapTemplate[]>([]);
     const [recommendedTemplates, setRecommendedTemplates] = useState<MindMapTemplate[]>([]);
     const [isRecommending, setIsRecommending] = useState(false);
@@ -1084,12 +1083,10 @@ export default function HomePage() {
                                 {/* 日间模式 */}
                                 <button
                                     onClick={() => {
-                                        console.log("日间模式按钮被点击! 当前主题=" + resolvedTheme);
                                         setTheme("light");
                                     }}
                                     onMouseDown={(e) => {
                                         e.preventDefault();
-                                        console.log("日间模式 onMouseDown");
                                         setTheme("light");
                                     }}
                                     type="button"
@@ -1107,12 +1104,10 @@ export default function HomePage() {
                                 {/* 夜间模式 */}
                                 <button
                                     onClick={() => {
-                                        console.log("夜间模式按钮被点击! 当前主题=" + resolvedTheme);
                                         setTheme("dark");
                                     }}
                                     onMouseDown={(e) => {
                                         e.preventDefault();
-                                        console.log("夜间模式 onMouseDown");
                                         setTheme("dark");
                                     }}
                                     type="button"
