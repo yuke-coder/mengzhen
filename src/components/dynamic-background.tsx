@@ -160,12 +160,6 @@ export default function DynamicBackground() {
             background-position: 0 0;
           }
         }
-
-        @media (max-width: 767px) {
-          .grid-container {
-            animation: none !important;
-          }
-        }
       `}</style>
       <div className="grid-container" />
     </>
