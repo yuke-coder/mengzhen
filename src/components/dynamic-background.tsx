@@ -3,12 +3,10 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme-context';
 import { usePathname } from 'next/navigation';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function DynamicBackground() {
   const { resolvedTheme } = useTheme();
   const pathname = usePathname();
-  const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -16,8 +14,6 @@ export default function DynamicBackground() {
   }, []);
 
   const isDark = mounted ? resolvedTheme === 'dark' : true;
-
-  const starCounts = isMobile ? { s1: 150, s2: 50, s3: 25 } : { s1: 700, s2: 200, s3: 100 };
 
   const generateStars = (count: number, seed: number) => {
     const stars = [];
@@ -29,9 +25,9 @@ export default function DynamicBackground() {
     return stars.join(',');
   };
 
-  const stars1 = useMemo(() => generateStars(starCounts.s1, 1), [starCounts.s1]);
-  const stars2 = useMemo(() => generateStars(starCounts.s2, 2), [starCounts.s2]);
-  const stars3 = useMemo(() => generateStars(starCounts.s3, 3), [starCounts.s3]);
+  const stars1 = useMemo(() => generateStars(700, 1), []);
+  const stars2 = useMemo(() => generateStars(200, 2), []);
+  const stars3 = useMemo(() => generateStars(100, 3), []);
 
   if (pathname?.startsWith('/auth/')) return null;
 
