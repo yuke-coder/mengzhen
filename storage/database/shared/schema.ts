@@ -75,6 +75,21 @@ export interface Audio {
 // SQL 建表语句（用于 Supabase SQL Editor 或 Migration）
 // ============================================================
 
+// ============================================================
+// 5. audio_files — 音频文件表（我的音频）
+// ============================================================
+export interface AudioFile {
+  id: string; // UUID 主键
+  user_id: string; // 关联 users.id
+  bucket_id: string; // Supabase Storage bucket ID
+  path: string; // 存储路径（如 audios/userId/xxx.mp3）
+  name: string; // 文件名
+  size: number; // 文件大小（字节）
+  mime_type: string; // MIME 类型
+  metadata: Record<string, unknown> | null; // 元数据（如 duration 等）
+  created_at: string;
+}
+
 export const CREATE_USERS_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
