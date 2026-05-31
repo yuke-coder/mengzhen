@@ -1443,6 +1443,7 @@ export default function HomePage() {
                         </RevealGroup>
                     </div>
                 </section>
+                </LazySection>
             </main>
             {}
             <footer className="border-t border-border py-8 px-6 bg-muted/20 relative z-20">
