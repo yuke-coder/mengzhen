@@ -1,5 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,48 +11,12 @@ import { Button } from "@/components/ui/button";
 import { useTheme, type Theme } from "@/lib/theme-context";
 
 import {
-    Brain,
-    Wand2,
-    Layers,
-    Download,
     Music,
     Clock,
     Volume2,
-    Upload,
-    Edit3,
-    Zap,
-    Shield,
-    FileText,
-    Smartphone,
     ChevronRight,
     Sun,
     Moon,
-    Monitor,
-    Sparkles,
-    BookOpen,
-    GraduationCap,
-    Coffee,
-    Briefcase,
-    Code2,
-    Video,
-    Palette,
-    HelpCircle,
-    Lightbulb,
-    HardDrive,
-    Globe,
-    Database,
-    Cookie,
-    Headphones,
-    Settings2,
-    Battery,
-    RefreshCw,
-    Lock,
-    Heart,
-    Users,
-    Calendar,
-    WifiOff,
-    Gift,
-    Crown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
