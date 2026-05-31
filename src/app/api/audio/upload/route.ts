@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getAuthUser } from "@/lib/auth";
 
-const SESSION_COOKIE_NAME = "mindmap_session";
-
-// 音频文件大小限制 100MB
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
-// 允许的音频类型
 const ALLOWED_TYPES = [
   "audio/mpeg",
   "audio/wav",
@@ -18,58 +14,19 @@ const ALLOWED_TYPES = [
   "audio/aac",
 ];
 
-// 允许的扩展名（用于 fallback 校验）
 const ALLOWED_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"];
-
-async function getUserIdFromSession(): Promise<string | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-
-    if (!sessionToken) {
-      return null;
-    }
-
-    const client = getSupabaseClient();
-    if (!client) {
-      return null;
-    }
-
-    const { data: session, error } = await client
-      .from("sessions")
-      .select("user_id, expires_at")
-      .eq("token", sessionToken)
-      .maybeSingle();
-
-    if (error || !session) {
-      return null;
-    }
-
-    // 手动检查 session 是否过期
-    const expiresAt = new Date(session.expires_at);
-    if (expiresAt < new Date()) {
-      return null;
-    }
-
-    return session.user_id;
-  } catch (error) {
-    console.error("[Audio Upload] 获取用户ID失败:", error);
-    return null;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
-    // 鉴权：获取当前用户
-    const userId = await getUserIdFromSession();
-    if (!userId) {
+    const authUser = await getAuthUser();
+    if (!authUser) {
       return NextResponse.json(
         { success: false, error: "请先登录" },
         { status: 401 }
       );
     }
+    const userId = authUser.id;
 
-    // 解析 FormData
     const formData = await request.formData();
     const file = formData.get("audio") as File | null;
     const saveToFiles = new URL(request.url).searchParams.get("save_to_files") === "true";
@@ -81,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证文件大小
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { success: false, error: `音频文件不能超过 ${MAX_FILE_SIZE / (1024 * 1024)}MB` },
@@ -89,19 +45,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证文件类型
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    if (
-      !ALLOWED_TYPES.includes(file.type) &&
-      !ALLOWED_EXTENSIONS.includes(ext)
-    ) {
+    const typeOk = ALLOWED_TYPES.includes(file.type) || file.type.startsWith("audio/") || file.type === "";
+    const extOk = ALLOWED_EXTENSIONS.includes(ext);
+    if (!typeOk && !extOk) {
       return NextResponse.json(
         { success: false, error: `不支持的音频格式，请上传 ${ALLOWED_EXTENSIONS.join(", ")} 文件` },
         { status: 400 }
       );
     }
 
-    // 检查 Supabase 是否可用
     const supabase = getSupabaseClient();
     if (!supabase) {
       return NextResponse.json(
@@ -110,18 +63,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 生成唯一文件名
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 10);
     const fileExt = ext || ".mp3";
     const fileName = `audios/${userId}/${timestamp}_${randomStr}${fileExt}`;
 
-    // 将 File 转换为 Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 上传到 Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("audios")
       .upload(fileName, buffer, {
         contentType: file.type || "audio/mpeg",
@@ -136,11 +86,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 获取公开访问 URL
     const { data: urlData } = supabase.storage.from("audios").getPublicUrl(fileName);
     const audioUrl = urlData.publicUrl;
 
-    // 1) 写入 audios 表（播放记录）
     const { error: dbError } = await supabase.from("audios").insert({
       user_id: userId,
       title: file.name.replace(/\.[^/.]+$/, ""),
@@ -158,9 +106,7 @@ export async function POST(request: NextRequest) {
       console.error("[Audio Upload] audios 表写入失败:", dbError);
     }
 
-    // 2) 仅在用户主动点击上传按钮时写入 audio_files 表（我的音频）
     if (saveToFiles) {
-      // 获取 audios bucket 的 ID
       const { data: bucketData } = await supabase.storage.getBucket("audios");
       const bucketId = bucketData?.id || "00000000-0000-0000-0000-000000000000";
 
