@@ -112,14 +112,6 @@ export default function DynamicBackground() {
               transform: translate3d(0, -2000px, 0);
             }
           }
-
-          @media (max-width: 767px) {
-            .stars-1,
-            .stars-2,
-            .stars-3 {
-              animation: none !important;
-            }
-          }
         `}</style>
         <div className="star-container">
           <div className="stars stars-1" />
