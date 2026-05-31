@@ -3,20 +3,22 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useTheme } from '@/lib/theme-context';
 import { usePathname } from 'next/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function DynamicBackground() {
   const { resolvedTheme } = useTheme();
   const pathname = usePathname();
+  const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 服务端渲染时默认使用暗色背景，避免 hydration 不匹配
   const isDark = mounted ? resolvedTheme === 'dark' : true;
 
-  // 生成星星位置的函数（暗色模式）
+  const starCounts = isMobile ? { s1: 150, s2: 50, s3: 25 } : { s1: 700, s2: 200, s3: 100 };
+
   const generateStars = (count: number, seed: number) => {
     const stars = [];
     for (let i = 0; i < count; i++) {
@@ -27,11 +29,10 @@ export default function DynamicBackground() {
     return stars.join(',');
   };
 
-  const stars1 = useMemo(() => generateStars(700, 1), []);
-  const stars2 = useMemo(() => generateStars(200, 2), []);
-  const stars3 = useMemo(() => generateStars(100, 3), []);
+  const stars1 = useMemo(() => generateStars(starCounts.s1, 1), [starCounts.s1]);
+  const stars2 = useMemo(() => generateStars(starCounts.s2, 2), [starCounts.s2]);
+  const stars3 = useMemo(() => generateStars(starCounts.s3, 3), [starCounts.s3]);
 
-  // 登录/注册页面有自己的渐变背景，不渲染全局背景（必须在所有 hooks 之后）
   if (pathname?.startsWith('/auth/')) return null;
 
   if (isDark) {
@@ -46,11 +47,14 @@ export default function DynamicBackground() {
             height: 100%;
             background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
             z-index: -1;
+            contain: layout style paint;
           }
           
           .stars {
             position: absolute;
             background: transparent;
+            will-change: transform;
+            contain: layout style paint;
           }
           
           .stars-1 {
@@ -106,10 +110,18 @@ export default function DynamicBackground() {
           
           @keyframes animStar {
             from {
-              transform: translateY(0px);
+              transform: translate3d(0, 0, 0);
             }
             to {
-              transform: translateY(-2000px);
+              transform: translate3d(0, -2000px, 0);
+            }
+          }
+
+          @media (max-width: 767px) {
+            .stars-1,
+            .stars-2,
+            .stars-3 {
+              animation: none !important;
             }
           }
         `}</style>
@@ -135,6 +147,7 @@ export default function DynamicBackground() {
           background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAIAAACRXR/mAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAABnSURBVHja7M5RDYAwDEXRDgmvEocnlrQS2SwUFST9uEfBGWs9c97nbGtDcquqiKhOImLs/UpuzVzWEi1atGjRokWLFi1atGjRokWLFi1atGjRokWLFi1af7Ukz8xWp8z8AAAA//8DAJ4LoEAAlL1nAAAAAElFTkSuQmCC") repeat 0 0;
           background-color: #ffffff;
           animation: bg-scrolling-reverse 0.92s infinite linear;
+          contain: layout style paint;
         }
         
         .grid-container::before {
@@ -157,6 +170,12 @@ export default function DynamicBackground() {
           }
           100% {
             background-position: 0 0;
+          }
+        }
+
+        @media (max-width: 767px) {
+          .grid-container {
+            animation: none !important;
           }
         }
       `}</style>
