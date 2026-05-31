@@ -2072,10 +2072,13 @@ export function AudioUpload({
                         }
                       });
 
-                      // 3. 撤销 blob URL
+                      // 3. 撤销 blob URL + 清理 IndexedDB
                       audios.forEach((a) => {
                         if (a.url && a.url.startsWith("blob:")) {
                           URL.revokeObjectURL(a.url);
+                        }
+                        if (a.dbKey) {
+                          deleteAudioBlob(a.dbKey).catch(() => {});
                         }
                       });
 
