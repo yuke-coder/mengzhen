@@ -1,40 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getAuthUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "请先登录" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const key = searchParams.get("key");
 
-  // 安全检查：只允许 audios 存储桶的文件（防止目录遍历攻击）
   if (!key || key.includes("..") || !key.startsWith("audios/")) {
     return NextResponse.json({ error: "无效的文件路径" }, { status: 400 });
   }
 
-  // file_key 即存储路径，直接使用（如 "audios/userId/timestamp_filename.mp3"）
-  const fileName = key;
+  const pathParts = key.split("/");
+  const pathUserId = pathParts.length >= 2 ? pathParts[1] : null;
+  if (!pathUserId || pathUserId !== user.id) {
+    return NextResponse.json({ error: "无权访问此文件" }, { status: 403 });
+  }
 
   const supabase = getSupabaseClient();
   if (!supabase) {
-    console.error("[Audio Proxy] Supabase 客户端未初始化，缺少 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY");
+    console.error("[Audio Proxy] Supabase 客户端未初始化");
     return NextResponse.json({ error: "服务器配置错误" }, { status: 500 });
   }
 
   try {
-    console.log("[Audio Proxy] 下载文件:", fileName);
-    
     const { data, error } = await supabase.storage
       .from("audios")
-      .download(fileName);
+      .download(key);
 
     if (error || !data) {
-      console.error("[Audio Proxy] 下载失败:", error?.message || "无数据", "fileName:", fileName);
+      console.error("[Audio Proxy] 下载失败:", error?.message || "无数据", "key:", key);
       return NextResponse.json({ error: "文件下载失败" }, { status: 502 });
     }
 
-    // 获取文件 MIME 类型
     const contentType = data.type || "audio/mpeg";
     const buffer = await data.arrayBuffer();
 
@@ -43,7 +48,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": contentType,
         "Content-Length": buffer.byteLength.toString(),
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "private, max-age=86400",
       },
     });
   } catch (err) {
