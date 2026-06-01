@@ -383,19 +383,15 @@ export function AudioUpload({
         // 恢复音频列表（如果有有效的音频）
         if (parsedConfig.audios && Array.isArray(parsedConfig.audios)) {
           // 严格验证：必须有有效的持久化标识或URL，blob: URL在页面刷新后失效
-          const validAudios = parsedConfig.audios.filter((a: any) => {
-            // 检查名称是否有效（非空且不是占位符）
-            if (!a.name || a.name.trim() === '' || a.name === '音频文件') {
+          const validAudios = parsedConfig.audios.filter((a: Record<string, unknown>) => {
+            if (!a.name || String(a.name).trim() === '' || a.name === '音频文件') {
               return false;
             }
-            // 检查是否有持久化的访问方式（fileKey/serverUrl/dbKey至少有一个）
-            // blob: URL在页面刷新后必定失效，不能作为恢复依据
             const hasPersistentAccess = !!(a.fileKey || a.serverUrl || a.dbKey);
             if (!hasPersistentAccess) {
               return false;
             }
-            // 检查时长是否有效（大于0）
-            if (!a.duration || a.duration <= 0) {
+            if (!a.duration || Number(a.duration) <= 0) {
               return false;
             }
             return true;
@@ -406,15 +402,15 @@ export function AudioUpload({
               name: validAudios[0]?.name || '',
               size: 0
             } as unknown as File;
-            setAudios(validAudios.map((a: any) => ({
-              id: a.id,
-              name: a.name,
+            setAudios(validAudios.map((a: Record<string, unknown>) => ({
+              id: a.id as string,
+              name: a.name as string,
               file: dummyFile,
-              url: a.serverUrl || null, // 不使用旧的 blob URL（页面刷新后已失效）
-              duration: a.duration || 0,
-              fileKey: a.fileKey,
-              serverUrl: a.serverUrl,
-              dbKey: a.dbKey,
+              url: (a.serverUrl as string) || null,
+              duration: (a.duration as number) || 0,
+              fileKey: a.fileKey as string | undefined,
+              serverUrl: a.serverUrl as string | undefined,
+              dbKey: a.dbKey as string | undefined,
             })));
             // 更新缓存，清除已失效的音频（只有blob: URL且无持久化标识的）
             try {
@@ -1670,7 +1666,7 @@ export function AudioUpload({
       {/* 注入拖拽样式 */}
       <style dangerouslySetInnerHTML={{ __html: dragStyles }} />
 
-      <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-3 sm:space-y-6">
 
         {/* 模式切换 - 固定显示 */}
         <div className="flex flex-col items-center gap-2.5 pb-4 sm:pb-0 border-b border-border/40 sm:border-0">
@@ -1697,7 +1693,7 @@ export function AudioUpload({
           processFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "relative p-8 sm:p-8 rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer",
+          "relative p-4 sm:p-8 rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer",
           "hover:border-[var(--brand-glow)]/60 hover:bg-[var(--brand-glow)]/5",
           dragOver && !disabled && "border-[var(--brand-glow)] bg-[var(--brand-glow)]/10 scale-[1.02]",
           disabled && "opacity-50 cursor-not-allowed"
@@ -1858,7 +1854,7 @@ export function AudioUpload({
                   {/* 顶部渐变条 */}
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-glow)]/20 to-transparent" />
 
-                  <div className="p-4 space-y-3">
+                  <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
                     {/* 主行：拖拽手柄 + 播放按钮 + 文件信息 + 操作 */}
                     <div className="flex items-center gap-3">
                       {/* 拖拽手柄 */}
@@ -2135,7 +2131,7 @@ export function AudioUpload({
 
         <div className="bg-card dark:bg-card/80 backdrop-blur-sm border border-border/60 rounded-2xl overflow-hidden">
           <div className="h-px bg-gradient-to-r from-transparent via-[var(--brand-glow)]/20 to-transparent" />
-          <div className="p-5 space-y-2.5">
+          <div className="p-3 sm:p-5 space-y-2.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                 <VolumeIcon className="w-3.5 h-3.5" />
@@ -2170,7 +2166,7 @@ export function AudioUpload({
         {mode === "default" && (
         <div className="bg-card dark:bg-card/80 backdrop-blur-sm border border-border/60 rounded-2xl overflow-hidden">
           <div className="h-px bg-gradient-to-r from-transparent via-[var(--brand-glow)]/20 to-transparent" />
-          <div className="p-5 space-y-4">
+          <div className="p-3 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                 <Timer className="w-3.5 h-3.5" />

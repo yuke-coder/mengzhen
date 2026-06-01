@@ -1292,51 +1292,51 @@ export function CustomMindMapViewer({ mindmap, className }: CustomMindMapViewerP
     ctx.fillRect(0, 0, dimensions.width, dimensions.height);
     
     // 根据模板类型渲染
-    const structure = mindmap.structure;
+    const structure = mindmap.structure as Record<string, unknown>;
     
     switch (mindmap.template) {
-      case 'radial':
+    case 'radial':
       case 'tree':
         // 经典放射图和树状图使用树形布局
         {
-          const structure = mindmap.structure || {};
+          const structure = (mindmap.structure || {}) as Record<string, unknown>;
           const rootNode = structure.root as TreeNode | undefined;
           console.log(`[render] ${mindmap.template}: structure=`, structure, 'rootNode=', rootNode);
           renderRadialTree(ctx, dimensions.width, dimensions.height, rootNode, scale, offset.x, offset.y);
         }
         break;
       case 'fishbone':
-        renderFishbone(ctx, dimensions.width, dimensions.height, structure as FishboneStructure, scale, offset.x, offset.y);
+        renderFishbone(ctx, dimensions.width, dimensions.height, structure as unknown as FishboneStructure, scale, offset.x, offset.y);
         break;
       case 'timeline':
-        renderTimeline(ctx, dimensions.width, dimensions.height, structure as TimelineStructure, scale, offset.x, offset.y);
+        renderTimeline(ctx, dimensions.width, dimensions.height, structure as unknown as TimelineStructure, scale, offset.x, offset.y);
         break;
       case 'venn':
-        renderVenn(ctx, dimensions.width, dimensions.height, structure as VennStructure, scale, offset.x, offset.y);
+        renderVenn(ctx, dimensions.width, dimensions.height, structure as unknown as VennStructure, scale, offset.x, offset.y);
         break;
       case 'flowchart':
-        renderFlowchart(ctx, dimensions.width, dimensions.height, structure as FlowchartStructure, scale, offset.x, offset.y);
+        renderFlowchart(ctx, dimensions.width, dimensions.height, structure as unknown as FlowchartStructure, scale, offset.x, offset.y);
         break;
       case 'multi-flow':
-        renderMultiFlow(ctx, dimensions.width, dimensions.height, structure as MultiFlowStructure, scale, offset.x, offset.y);
+        renderMultiFlow(ctx, dimensions.width, dimensions.height, structure as unknown as MultiFlowStructure, scale, offset.x, offset.y);
         break;
       case 'double-bubble':
-        renderDoubleBubble(ctx, dimensions.width, dimensions.height, structure as DoubleBubbleStructure, scale, offset.x, offset.y);
+        renderDoubleBubble(ctx, dimensions.width, dimensions.height, structure as unknown as DoubleBubbleStructure, scale, offset.x, offset.y);
         break;
       case 'bridge':
-        renderBridge(ctx, dimensions.width, dimensions.height, structure as BridgeStructure, scale, offset.x, offset.y);
+        renderBridge(ctx, dimensions.width, dimensions.height, structure as unknown as BridgeStructure, scale, offset.x, offset.y);
         break;
       case 'org-chart':
-        renderOrgChart(ctx, dimensions.width, dimensions.height, structure as OrgChartStructure, scale, offset.x, offset.y);
+        renderOrgChart(ctx, dimensions.width, dimensions.height, structure as unknown as OrgChartStructure, scale, offset.x, offset.y);
         break;
       case 'circle':
-        renderCircle(ctx, dimensions.width, dimensions.height, structure as CircleStructure, scale, offset.x, offset.y);
+        renderCircle(ctx, dimensions.width, dimensions.height, structure as unknown as CircleStructure, scale, offset.x, offset.y);
         break;
       case 'bubble':
-        renderBubble(ctx, dimensions.width, dimensions.height, structure as BubbleStructure, scale, offset.x, offset.y);
+        renderBubble(ctx, dimensions.width, dimensions.height, structure as unknown as BubbleStructure, scale, offset.x, offset.y);
         break;
       case 'concept':
-        renderConcept(ctx, dimensions.width, dimensions.height, structure as ConceptStructure, scale, offset.x, offset.y);
+        renderConcept(ctx, dimensions.width, dimensions.height, structure as unknown as ConceptStructure, scale, offset.x, offset.y);
         break;
       default:
         // 基础渲染
@@ -1406,10 +1406,8 @@ export function CustomMindMapViewer({ mindmap, className }: CustomMindMapViewerP
     const mouseY = e.clientY - rect.top;
     
     // 遍历结构中的文本，找到点击位置最近的节点
-    const structure = mindmap.structure;
+    const structure = mindmap.structure as Record<string, unknown>;
     const nodeTexts: Array<{ text: string; nodeId: string; x: number; y: number }> = [];
-    
-    // 提取所有节点文本和位置（根据不同模板类型）
     const addNode = (text: string, x: number, y: number, id: string = text) => {
       if (text) nodeTexts.push({ text, nodeId: id, x, y });
     };
@@ -1445,7 +1443,7 @@ export function CustomMindMapViewer({ mindmap, className }: CustomMindMapViewerP
         break;
       }
       case 'flowchart': {
-        const fc = structure as FlowchartStructure;
+        const fc = structure as unknown as FlowchartStructure;
         if (fc.steps) {
           fc.steps.forEach((s, i) => {
             const stepText = typeof s === 'string' ? s : (s as { text?: string }).text || '';
@@ -1455,7 +1453,7 @@ export function CustomMindMapViewer({ mindmap, className }: CustomMindMapViewerP
         break;
       }
       case 'venn': {
-        const vn = structure as VennStructure;
+        const vn = structure as unknown as VennStructure;
         if (vn.sets) {
           vn.sets.forEach((s, i) => {
             const labelText = typeof s === 'string' ? s : (s as { label?: string }).label || '';

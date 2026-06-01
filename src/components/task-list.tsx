@@ -212,15 +212,15 @@ function audioInfoDisplay(audio: TaskAudio) {
   const info = [];
   if (audio.size > 0) {
     info.push(
-      <span key="size" className="flex items-center gap-0.5 text-[10px] text-muted-foreground/60">
-        <HardDrive className="w-2.5 h-2.5" />
+      <span key="size" className="flex items-center gap-0.5 text-[11px] sm:text-[10px] text-muted-foreground/60">
+        <HardDrive className="w-3 h-3 sm:w-2.5 sm:h-2.5" />
         {formatFileSize(audio.size)}
       </span>
     );
   }
   if (audio.duration > 0) {
     info.push(
-      <span key="duration" className="text-[10px] text-muted-foreground/60">
+      <span key="duration" className="text-[11px] sm:text-[10px] text-muted-foreground/60">
         {formatDuration(audio.duration)}
       </span>
     );
@@ -256,7 +256,9 @@ function useTaskState(task: ScheduledTask) {
   });
 
   const statusRef = useRef(status);
-  statusRef.current = status;
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   useEffect(() => {
     const update = () => {
@@ -424,7 +426,7 @@ function TaskItem({
 
   const repeatBadge = (
     <span className={cn(
-      "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border flex-shrink-0",
+      "inline-flex items-center px-1.5 sm:px-1.5 py-0.5 rounded text-[11px] sm:text-[10px] font-medium border flex-shrink-0",
       task.repeatType === "once"
         ? "bg-blue-500/10 border-blue-500/20 text-blue-400"
         : task.repeatType === "daily"
@@ -433,61 +435,61 @@ function TaskItem({
             ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
             : "bg-rose-500/10 border-rose-500/20 text-rose-400"
     )}>
-      <Repeat className="w-2.5 h-2.5 mr-0.5" />
+      <Repeat className="w-3 h-3 sm:w-2.5 sm:h-2.5 mr-0.5" />
       {REPEAT_TYPE_LABELS[task.repeatType]}
     </span>
   );
 
   const infoRow = (
-    <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-1 text-[12px] sm:text-[11px] text-muted-foreground flex-wrap leading-relaxed">
-      <span className="flex items-center gap-0.5 sm:gap-1">
-        <Clock className="w-3 h-3 sm:w-3 sm:h-3" />
-        {task.startTime.month}/{task.startTime.day} {String(task.startTime.hour).padStart(2, "0")}:{String(task.startTime.minute).padStart(2, "0")}
-      </span>
-      <span className="text-muted-foreground/40">·</span>
-      <span>{task.playDurationMinutes}分钟</span>
-      <span className="text-muted-foreground/40">·</span>
-      <span className="flex items-center gap-0.5">
-        <Volume2 className="w-3 h-3 sm:w-3 sm:h-3" />
-        {task.volume}%
-      </span>
-      {task.fadeInDuration > 0 && (
-        <>
-          <span className="text-muted-foreground/40">·</span>
-          <span className="flex items-center gap-0.5">
-            <TrendingUp className="w-3 h-3 sm:w-3 sm:h-3" />
-            渐入{task.fadeInDuration}秒
-          </span>
-        </>
-      )}
-      {task.fadeOutDuration > 0 && (
-        <>
-          <span className="text-muted-foreground/40">·</span>
-          <span className="flex items-center gap-0.5">
-            <TrendingDown className="w-3 h-3 sm:w-3 sm:h-3" />
-            渐出{task.fadeOutDuration}秒
-          </span>
-        </>
+    <div className="mt-1.5 sm:mt-1 text-muted-foreground space-y-0.5">
+      <div className="flex items-center gap-1.5 sm:gap-2 text-[13px] sm:text-[11px] leading-relaxed">
+        <span className="flex items-center gap-0.5 sm:gap-1">
+          <Clock className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+          {task.startTime.month}/{task.startTime.day} {String(task.startTime.hour).padStart(2, "0")}:{String(task.startTime.minute).padStart(2, "0")}
+        </span>
+        <span className="text-muted-foreground/40">·</span>
+        <span>{task.playDurationMinutes}分钟</span>
+        <span className="text-muted-foreground/40">·</span>
+        <span className="flex items-center gap-0.5">
+          <Volume2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+          {task.volume}%
+        </span>
+      </div>
+      {(task.fadeInDuration > 0 || task.fadeOutDuration > 0) && (
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[12px] sm:text-[11px] text-muted-foreground/70 leading-relaxed">
+          {task.fadeInDuration > 0 && (
+            <span className="flex items-center gap-0.5">
+              <TrendingUp className="w-3 h-3 sm:w-3 sm:h-3" />
+              渐入{task.fadeInDuration}秒
+            </span>
+          )}
+          {task.fadeInDuration > 0 && task.fadeOutDuration > 0 && <span className="text-muted-foreground/40">·</span>}
+          {task.fadeOutDuration > 0 && (
+            <span className="flex items-center gap-0.5">
+              <TrendingDown className="w-3 h-3 sm:w-3 sm:h-3" />
+              渐出{task.fadeOutDuration}秒
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
 
   const audioRow = (
-    <div className="mt-3 sm:mt-2.5 flex items-start gap-2.5 sm:gap-2 p-2.5 sm:p-0 rounded-lg sm:rounded-none bg-muted/30 sm:bg-transparent">
-      <span className={cn(statusLabel, "flex-shrink-0")}>{statusText}</span>
+    <div className="mt-1.5 sm:mt-2.5 flex items-center gap-2 sm:gap-2 sm:p-0 rounded-none sm:rounded-none bg-transparent sm:bg-transparent sm:pl-0">
       {firstAudio && (
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <Music2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-muted-foreground/50 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <span className="text-[12px] sm:text-[11px] text-muted-foreground break-words leading-relaxed">{firstAudio.name}</span>
+            <span className="text-[12px] sm:text-[11px] text-muted-foreground truncate leading-relaxed">{firstAudio.name}</span>
             {audioInfoDisplay(firstAudio) && (
-              <div className="mt-0.5 sm:mt-0">{audioInfoDisplay(firstAudio)}</div>
+              <span className="sm:mt-0 ml-1.5">{audioInfoDisplay(firstAudio)}</span>
             )}
           </div>
         </div>
       )}
       {task.audios.length > 1 && (
-        <span className="text-[11px] sm:text-[10px] text-muted-foreground/60 flex-shrink-0 bg-muted/50 px-1.5 py-0.5 rounded sm:bg-transparent sm:px-0 sm:py-0">
+        <span className="text-[11px] sm:text-[10px] text-muted-foreground/60 flex-shrink-0 bg-muted/50 sm:bg-muted/50 px-1.5 py-0.5 rounded">
           +{task.audios.length - 1}
         </span>
       )}
@@ -635,75 +637,102 @@ function TaskItem({
         )}
       >
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-glow)]/20 to-transparent" />
-        <div className="p-4 sm:p-4">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <p className="font-semibold text-[15px] text-foreground truncate">{task.name}</p>
-                {repeatBadge}
-              </div>
-              {infoRow}
+        <div className="p-3">
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="font-medium text-sm text-foreground truncate">{task.name}</p>
+              {repeatBadge}
             </div>
             <StatusBadge task={task} status={status} phase={phase} />
           </div>
+
+          <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground leading-relaxed">
+            <span className="flex items-center gap-0.5">
+              <Clock className="w-3.5 h-3.5" />
+              {task.startTime.month}/{task.startTime.day} {String(task.startTime.hour).padStart(2, "0")}:{String(task.startTime.minute).padStart(2, "0")}
+            </span>
+            <span className="text-muted-foreground/40">·</span>
+            <span>{task.playDurationMinutes}分钟</span>
+            <span className="text-muted-foreground/40">·</span>
+            <span className="flex items-center gap-0.5">
+              <Volume2 className="w-3.5 h-3.5" />
+              {task.volume}%
+            </span>
+          </div>
+
+          {(task.fadeInDuration > 0 || task.fadeOutDuration > 0) && (
+            <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground/70 leading-relaxed mt-0.5">
+              {task.fadeInDuration > 0 && (
+                <span className="flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" />
+                  渐入{task.fadeInDuration}秒
+                </span>
+              )}
+              {task.fadeInDuration > 0 && task.fadeOutDuration > 0 && <span className="text-muted-foreground/40">·</span>}
+              {task.fadeOutDuration > 0 && (
+                <span className="flex items-center gap-0.5">
+                  <TrendingDown className="w-3 h-3" />
+                  渐出{task.fadeOutDuration}秒
+                </span>
+              )}
+            </div>
+          )}
+
           {audioRow}
 
-          {/* 移动端操作按钮 - 直接显示所有控件，优化点击区域 */}
-          <div className="mt-3 pt-3 border-t border-border/30">
-            <div className="flex items-center justify-end gap-1.5">
-              {status !== "cancelled" && status !== "completed" && status !== "executing" && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const sched = getTaskScheduler();
-                    sched.executeNow(task.id);
-                    onRefresh();
-                    toast.success(`任务「${task.name}」已开始执行`);
-                  }}
-                  className="p-2.5 rounded-xl text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 active:bg-emerald-500/15 transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                  title="立即执行"
-                >
-                  <PlayCircle className="w-5 h-5" />
-                </button>
-              )}
-              {status !== "cancelled" && status !== "completed" && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onCancel(task); }}
-                  className="p-2.5 rounded-xl text-muted-foreground hover:text-amber-400 hover:bg-amber-500/10 active:bg-amber-500/15 transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                  title="取消执行"
-                >
-                  <XCircle className="w-5 h-5" />
-                </button>
-              )}
-              {status === "cancelled" && task.skipUntil && task.repeatType !== "once" && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const sched = getTaskScheduler();
-                    sched.resumeTask(task.id);
-                    toast.success(`任务「${task.name}」已恢复执行`);
-                  }}
-                  className="p-2.5 rounded-xl text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 active:bg-emerald-500/15 transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                  title="恢复执行"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              )}
+          <div className="mt-2 pt-2 border-t border-border/30 flex items-center gap-1.5 flex-wrap">
+            {status !== "cancelled" && status !== "completed" && status !== "executing" && (
               <button
-                onClick={(e) => { e.stopPropagation(); onEdit(task); }}
-                className="p-2.5 rounded-xl text-muted-foreground hover:text-[var(--brand-start)] hover:bg-[var(--brand-start)]/10 active:bg-[var(--brand-start)]/15 transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                title="编辑任务"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const sched = getTaskScheduler();
+                  sched.executeNow(task.id);
+                  onRefresh();
+                  toast.success(`任务「${task.name}」已开始执行`);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-emerald-500 bg-emerald-500/10 active:bg-emerald-500/20 transition-all cursor-pointer min-h-[36px]"
               >
-                <Edit3 className="w-5 h-5" />
+                <PlayCircle className="w-4 h-4" />
+                执行
               </button>
+            )}
+            {status !== "cancelled" && status !== "completed" && (
               <button
-                onClick={(e) => { e.stopPropagation(); onDelete(task); }}
-                className="p-2.5 rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/15 transition-all cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
-                title="删除任务"
+                onClick={(e) => { e.stopPropagation(); onCancel(task); }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-amber-500 bg-amber-500/10 active:bg-amber-500/20 transition-all cursor-pointer min-h-[36px]"
               >
-                <Trash2 className="w-5 h-5" />
+                <XCircle className="w-4 h-4" />
+                取消
               </button>
-            </div>
+            )}
+            {status === "cancelled" && task.skipUntil && task.repeatType !== "once" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const sched = getTaskScheduler();
+                  sched.resumeTask(task.id);
+                  toast.success(`任务「${task.name}」已恢复执行`);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-emerald-500 bg-emerald-500/10 active:bg-emerald-500/20 transition-all cursor-pointer min-h-[36px]"
+              >
+                <RotateCcw className="w-4 h-4" />
+                恢复
+              </button>
+            )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(task); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-[var(--brand-start)] bg-[var(--brand-start)]/10 active:bg-[var(--brand-start)]/20 transition-all cursor-pointer min-h-[36px]"
+            >
+              <Edit3 className="w-4 h-4" />
+              编辑
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(task); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-red-400 bg-red-500/10 active:bg-red-500/20 transition-all cursor-pointer min-h-[36px]"
+            >
+              <Trash2 className="w-4 h-4" />
+              删除
+            </button>
           </div>
         </div>
       </div>
@@ -1005,7 +1034,7 @@ export function TaskList({ tasks, onEdit, onRefresh }: TaskListProps) {
           <CalendarClock className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/30" />
         </div>
         <p className="text-sm text-muted-foreground font-medium">暂无自定义任务</p>
-        <p className="text-xs text-muted-foreground/60 mt-1.5 sm:mt-1 leading-relaxed">点击上方"新建任务"按钮创建</p>
+        <p className="text-xs text-muted-foreground/60 mt-1.5 sm:mt-1 leading-relaxed">点击上方&ldquo;新建任务&rdquo;按钮创建</p>
       </div>
     );
   }
@@ -1016,9 +1045,12 @@ export function TaskList({ tasks, onEdit, onRefresh }: TaskListProps) {
         <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
           <CalendarClock className="w-4 h-4 text-[var(--brand-start)]" />
           任务列表（{tasks.length}）
-          <span className="text-xs font-normal text-muted-foreground">
-            · 拖拽调整顺序
-          </span>
+          <span className="text-xs font-normal text-muted-foreground hidden sm:inline">
+              · 拖拽调整顺序
+            </span>
+            <span className="text-xs font-normal text-muted-foreground sm:hidden">
+              · 长按拖动
+            </span>
         </h3>
       </div>
 

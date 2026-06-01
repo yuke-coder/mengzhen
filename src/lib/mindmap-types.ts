@@ -210,10 +210,9 @@ export type MindMapStructure =
 // 统一的脑图数据格式
 export interface MindMapData {
   template: MindMapTemplate;
-  structure: any; // 允许任何模板结构
+  structure: unknown;
   title: string;
-  raw?: any; // 保留原始数据
-  // 兼容性属性：对于树形结构模板，提供便捷访问
+  raw?: unknown;
   root?: MindMapNode;
 }
 

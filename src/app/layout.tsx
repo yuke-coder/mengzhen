@@ -34,6 +34,9 @@ export const metadata: Metadata = {
     description: "专为浅眠人群设计的睡眠音频播放器，支持自定义定时、淡入淡出、全自动运行",
     type: "website",
   },
+  other: {
+    "dns-prefetch": "https://br-epic-clam-5a2fd709.supabase2.aidap-global.cn-beijing.volces.com",
+  },
 };
 
 // 内联脚本：React 水合前读取主题偏好并设置 class，防止 FOUC 闪烁
@@ -46,11 +49,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <head>
-        <link rel="prefetch" href="/settings" />
-        <link rel="prefetch" href="/templates" />
-        <link rel="dns-prefetch" href="https://br-epic-clam-5a2fd709.supabase2.aidap-global.cn-beijing.volces.com" />
-      </head>
       <body suppressHydrationWarning>
         {/* beforeInteractive: 在页面水合前执行，读取 localStorage 设置主题 class */}
         <Script

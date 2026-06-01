@@ -110,7 +110,7 @@ export default function TemplatesPage() {
           }
 
           // 标记缺少 fileKey 的音频（旧数据兼容）
-          const missingKeys = parsedConfig.audios.filter((a: any) => !a.fileKey);
+          const missingKeys = parsedConfig.audios.filter((a: AudioItem) => !a.fileKey);
           if (missingKeys.length > 0) {
             console.warn(`[梦枕] ${missingKeys.length} 个音频缺少 fileKey，将尝试降级播放`);
           }
@@ -118,13 +118,13 @@ export default function TemplatesPage() {
           // 清理已失效的 blob URL（页面刷新后失效）
           const cleanedConfig = {
             ...parsedConfig,
-            audios: parsedConfig.audios.map((a: any) => ({
+            audios: parsedConfig.audios.map((a: AudioItem) => ({
               ...a,
-              url: a.serverUrl ? a.url : null // 只有 serverUrl 存在时才保留 url，否则可能是已失效的 blob URL
+              url: a.serverUrl ? a.url : ''
             }))
           };
           setConfig(cleanedConfig);
-          console.log('[梦枕] 配置加载成功, 音频列表:', cleanedConfig.audios?.map((a: any) => ({ name: a.name, fileKey: a.fileKey?.substring(0, 40) })));
+          console.log('[梦枕] 配置加载成功, 音频列表:', cleanedConfig.audios?.map((a: AudioItem) => ({ name: a.name, fileKey: a.fileKey?.substring(0, 40) })));
           setVolume(parsedConfig.volume);
           setHasConfig(true);
           setIsConfigLoaded(true);
@@ -190,7 +190,7 @@ export default function TemplatesPage() {
               console.log('[梦枕] 已过开始时间，继续播放. 距结束时间:', toEndSec, '秒');
               isStartedRef.current = true;
               isPlayingRef.current = true;
-              playStartedRef.current = true;
+              setPlayStarted(true);
               setIsPlaying(true);
               setIsFadingIn(false); // 渐入阶段已过
               setCountdownSeconds(0);
@@ -231,6 +231,34 @@ export default function TemplatesPage() {
     return () => clearInterval(timer);
   }, []);
 
+  // 停止播放
+  const stopPlayback = useCallback(() => {
+    if (fadeTimerRef.current) {
+      clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (currentBlobUrlRef.current) {
+      URL.revokeObjectURL(currentBlobUrlRef.current);
+      currentBlobUrlRef.current = null;
+    }
+    if (timerWorkerRef.current) {
+      timerWorkerRef.current.postMessage({ type: 'stop' });
+    }
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+    setIsFadingOut(false);
+    isFadingOutRef.current = false;
+    setInitialFadeOutSeconds(0);
+  }, []);
+
   // 取消播放并跳转
   const handleCancel = useCallback(() => {
     isStartedRef.current = false;
@@ -239,9 +267,8 @@ export default function TemplatesPage() {
     setCountdownSeconds(0);
     // 跳转到创作页面
     router.push('/settings');
-  }, [router]);
+  }, [router, stopPlayback]);
 
-  // 获取播放时长秒数
   const getPlayDurationSeconds = () => {
     if (!config?.playDuration) return 30 * 60;
     return (config.playDuration.hour * 60 + config.playDuration.minute) * 60;
@@ -292,7 +319,7 @@ export default function TemplatesPage() {
   const ensureAudioContext = useCallback(() => {
     if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
       try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
         audioContextRef.current = ctx;
         console.log('[梦枕] AudioContext 已创建, state:', ctx.state);
       } catch (err) {
@@ -311,36 +338,6 @@ export default function TemplatesPage() {
     return config.audios.reduce((acc, audio) => acc + (audio.duration || 0), 0);
   };
 
-  // 停止播放
-  const stopPlayback = useCallback(() => {
-    if (fadeTimerRef.current) {
-      clearInterval(fadeTimerRef.current);
-      fadeTimerRef.current = null;
-    }
-    if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
-      countdownTimerRef.current = null;
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    // 清理 blob URL，防止内存泄漏
-    if (currentBlobUrlRef.current) {
-      URL.revokeObjectURL(currentBlobUrlRef.current);
-      currentBlobUrlRef.current = null;
-    }
-    // PWA: 停止 Worker 定时器
-    if (timerWorkerRef.current) {
-      timerWorkerRef.current.postMessage({ type: 'stop' });
-    }
-    setIsPlaying(false);
-    isPlayingRef.current = false;
-    setIsFadingOut(false);
-    isFadingOutRef.current = false;
-    setInitialFadeOutSeconds(0);
-  }, []);
-
   // 暂停/恢复播放
   const togglePause = useCallback(() => {
     if (!audioRef.current) return;
@@ -352,6 +349,37 @@ export default function TemplatesPage() {
       setIsPlaying(false);
     }
   }, []);
+
+  // 播放时长结束处理
+  const handleEnd = useCallback(() => {
+    if (isEndedRef.current) return;
+    isEndedRef.current = true;
+
+    if (timerWorkerRef.current) {
+      timerWorkerRef.current.postMessage({ type: 'stop' });
+    }
+
+    releaseWakeLock();
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    if (fadeTimerRef.current) {
+      clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+    isStartedRef.current = false;
+    setIsCompleted(true);
+
+    localStorage.removeItem('dream_config');
+  }, [releaseWakeLock]);
+
+  const playAudioHelperRef = useRef<((index: number, audio: HTMLAudioElement) => Promise<void>) | null>(null);
 
   // 播放音频辅助函数
   const playAudioHelper = useCallback(async (index: number, audio: HTMLAudioElement) => {
@@ -402,7 +430,7 @@ export default function TemplatesPage() {
       if (nextIndex < orderedAudios.length && isStartedRef.current) {
         const nextAudio = new Audio();
         audioRef.current = nextAudio;
-        playAudioHelper(nextIndex, nextAudio);
+        playAudioHelperRef.current?.(nextIndex, nextAudio);
       } else {
         // 所有音频都无法播放，停止播放（不跳转，用户刷新后返回）
         console.error('[梦枕] 所有音频都无法播放');
@@ -418,7 +446,7 @@ export default function TemplatesPage() {
       if (nextIndex < orderedAudios.length && isStartedRef.current) {
         const nextAudio = new Audio();
         audioRef.current = nextAudio;
-        playAudioHelper(nextIndex, nextAudio);
+        playAudioHelperRef.current?.(nextIndex, nextAudio);
       } else {
         stopPlayback();
         setIsCompleted(true);
@@ -518,39 +546,9 @@ export default function TemplatesPage() {
     audio.dataset.startTime = Date.now().toString();
   }, [config, volume, endTime, stopPlayback, router]);
 
-  // 播放时长结束处理
-  const handleEnd = useCallback(() => {
-    // 防止重复调用
-    if (isEndedRef.current) return;
-    isEndedRef.current = true;
-
-    // PWA: 先停止 Worker 定时器
-    if (timerWorkerRef.current) {
-      timerWorkerRef.current.postMessage({ type: 'stop' });
-    }
-
-    // PWA: 释放 Wake Lock
-    releaseWakeLock();
-
-    // 立即停止音频播放（不渐出，确保音频真正停止）
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = ''; // 彻底释放音频资源
-      audioRef.current = null;
-    }
-    if (fadeTimerRef.current) {
-      clearInterval(fadeTimerRef.current);
-      fadeTimerRef.current = null;
-    }
-
-    setIsPlaying(false);
-    isPlayingRef.current = false;
-    isStartedRef.current = false;
-    setIsCompleted(true); // 标记播放完毕，页面保持显示完成状态
-
-    // 清除已完成的配置，防止刷新后显示过期倒计时
-    localStorage.removeItem('dream_config');
-  }, [releaseWakeLock]);
+  useEffect(() => {
+    playAudioHelperRef.current = playAudioHelper;
+  }, [playAudioHelper]);
 
   // 自动倒计时：配置加载后自动开始，倒计时结束触发播放
   // PWA: 使用 Web Worker 保持后台精确计时，使用 Date.now() 差值避免累计误差
@@ -651,14 +649,14 @@ export default function TemplatesPage() {
 
   // PWA: 渐出定时器（渐入完成后启动独立的渐出倒计时）
   // 使用 playStartedRef 触发，确保组件挂载时如果已经在播放状态也能启动
-  const playStartedRef = useRef(false);
+  const [playStarted, setPlayStarted] = useState(false);
   
   // 当渐入完成时，标记播放已开始
   useEffect(() => {
-    if (!isFadingIn && isPlaying && !playStartedRef.current) {
-      playStartedRef.current = true;
+    if (!isFadingIn && isPlaying && !playStarted) {
+      setPlayStarted(true);
     }
-  }, [isFadingIn, isPlaying]);
+  }, [isFadingIn, isPlaying, playStarted]);
   
   // 播放期间持续更新剩余时间（基于结束时间，不含渐出时长）
   useEffect(() => {
@@ -715,7 +713,7 @@ export default function TemplatesPage() {
     // 只有当渐入完成（isFadingIn 变为 false）且正在播放时，才启动渐出定时器
     // 或者播放已经开始但还未启动过渐出定时器
     if (isFadingIn || !isPlaying || !isStartedRef.current || !endTime || !config) return;
-    if (playStartedRef.current && isFadingOutRef.current) return; // 渐出定时器已启动
+    if (playStarted && isFadingOutRef.current) return; // 渐出定时器已启动
     
     const fadeOutSec = config.fadeOutDuration ?? 0;
     if (fadeOutSec <= 0) return; // 没有设置渐出时长，不启动
@@ -858,6 +856,46 @@ export default function TemplatesPage() {
     const orderedAudios = config.order.map(id => config.audios.find(a => a.id === id)).filter(Boolean) as AudioItem[];
     return orderedAudios[currentAudioIndex % orderedAudios.length]?.duration || 0;
   })();
+
+  const fadeCountdown = useMemo(() => {
+    if (!config?.startTime) return null;
+    const startYear = config.startTime.year ?? new Date().getFullYear();
+    const startMonth = config.startTime.month ?? 1;
+    const startDay = config.startTime.day ?? 1;
+    const startHour = config.startTime.hour;
+    const startMinute = config.startTime.minute;
+    const startSecond = config.startTime.second ?? 0;
+    const fadeIn = config.fadeInDuration;
+    const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute, startSecond, 0);
+    const fadeDate = new Date(startDate.getTime() - fadeIn * 1000);
+    const now = Date.now();
+    const fadeMs = fadeDate.getTime() - now;
+    const fadeSec = Math.max(0, Math.ceil(fadeMs / 1000));
+    const hours = Math.floor(fadeSec / 3600);
+    const minutes = Math.floor((fadeSec % 3600) / 60);
+    const seconds = fadeSec % 60;
+    if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }, [config, currentTime]);
+
+  const startCountdown = useMemo(() => {
+    if (!config?.startTime) return null;
+    const startYear = config.startTime.year ?? new Date().getFullYear();
+    const startMonth = config.startTime.month ?? 1;
+    const startDay = config.startTime.day ?? 1;
+    const startHour = config.startTime.hour;
+    const startMinute = config.startTime.minute;
+    const startSecond = config.startTime.second ?? 0;
+    const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute, startSecond, 0);
+    const now = Date.now();
+    const startMs = startDate.getTime() - now;
+    const startSec = Math.max(0, Math.ceil(startMs / 1000));
+    const hours = Math.floor(startSec / 3600);
+    const minutes = Math.floor((startSec % 3600) / 60);
+    const seconds = startSec % 60;
+    if (hours > 0) return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }, [config, currentTime]);
 
   return (
     <div className="min-h-screen text-foreground overflow-x-hidden relative z-10" suppressHydrationWarning>
@@ -1273,35 +1311,7 @@ export default function TemplatesPage() {
                               className="text-lg font-bold text-cyan-400 tracking-wider"
                               style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}
                             >
-                              {config?.startTime && config?.fadeInDuration !== undefined ? (() => {
-                                const startYear = config.startTime.year ?? new Date().getFullYear();
-                                const startMonth = config.startTime.month ?? 1;
-                                const startDay = config.startTime.day ?? 1;
-                                const startHour = config.startTime.hour;
-                                const startMinute = config.startTime.minute;
-                                const startSecond = config.startTime.second ?? 0;
-                                const fadeIn = config.fadeInDuration;
-                                
-                                // 创建开始时间的 Date 对象
-                                const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute, startSecond, 0);
-                                
-                                // 计算渐入开始时间 = 开始时间 - 渐入时长
-                                const fadeDate = new Date(startDate.getTime() - fadeIn * 1000);
-                                
-                                // 计算距离渐入开始还有多少秒
-                                const now = Date.now();
-                                const fadeMs = fadeDate.getTime() - now;
-                                const fadeSec = Math.max(0, Math.ceil(fadeMs / 1000));
-                                
-                                const hours = Math.floor(fadeSec / 3600);
-                                const minutes = Math.floor((fadeSec % 3600) / 60);
-                                const seconds = fadeSec % 60;
-                                
-                                if (hours > 0) {
-                                  return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                                }
-                                return `${minutes}:${String(seconds).padStart(2, '0')}`;
-                              })() : '--:--'}
+                              {fadeCountdown ?? '--:--'}
                             </div>
                           </div>
                           
@@ -1311,29 +1321,7 @@ export default function TemplatesPage() {
                               className="text-lg font-bold text-purple-400 tracking-wider"
                               style={{ fontFamily: 'monospace', letterSpacing: '0.05em' }}
                             >
-                              {config?.startTime ? (() => {
-                                // 计算距离预设开始时间（startTime）的倒计时
-                                const startYear = config.startTime.year ?? new Date().getFullYear();
-                                const startMonth = config.startTime.month ?? 1;
-                                const startDay = config.startTime.day ?? 1;
-                                const startHour = config.startTime.hour;
-                                const startMinute = config.startTime.minute;
-                                const startSecond = config.startTime.second ?? 0;
-                                
-                                const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute, startSecond, 0);
-                                const now = Date.now();
-                                const startMs = startDate.getTime() - now;
-                                const startSec = Math.max(0, Math.ceil(startMs / 1000));
-                                
-                                const hours = Math.floor(startSec / 3600);
-                                const minutes = Math.floor((startSec % 3600) / 60);
-                                const seconds = startSec % 60;
-                                
-                                if (hours > 0) {
-                                  return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                                }
-                                return `${minutes}:${String(seconds).padStart(2, '0')}`;
-                              })() : '--:--'}
+                              {startCountdown ?? '--:--'}
                             </div>
                           </div>
                         </div>

@@ -1022,7 +1022,7 @@ class TaskScheduler {
   private ensureAudioContext() {
     if (!this.audioContext || this.audioContext.state === 'closed') {
       try {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       } catch {}
     }
     if (this.audioContext && this.audioContext.state === 'suspended') {

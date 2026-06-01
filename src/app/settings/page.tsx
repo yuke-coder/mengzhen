@@ -1167,7 +1167,7 @@ function CreatePageContent() {
                 }
             }
 
-            function handleStreamEvent(event: any) {
+            function handleStreamEvent(event: { type: string; total?: number; mindmap?: MindMapData }) {
                 switch (event.type) {
                     case "start":
                         totalCountRef.current = event.total || selectedTemplates.length;
@@ -1297,7 +1297,7 @@ function CreatePageContent() {
 
             <main className="pt-14 relative">
                 {step === "input" && <section
-                    className="relative min-h-[85vh] flex flex-col items-center justify-center px-6 overflow-hidden">
+                    className="relative min-h-[85vh] flex flex-col items-center justify-center px-4 sm:px-6 overflow-hidden">
         
                     <div className="absolute inset-0 overflow-hidden">
                         <svg
@@ -1413,7 +1413,7 @@ function CreatePageContent() {
                         <div
                             className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-background via-background/80 to-transparent" />
                     </div>
-                    <div className="relative z-20 max-w-4xl mx-auto w-full space-y-4 sm:space-y-6 px-3 sm:px-4 md:px-0">
+                    <div className="relative z-20 max-w-4xl mx-auto w-full space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-0">
             
                         <div className="text-center space-y-4 mt-8">
                 
@@ -1524,11 +1524,11 @@ function CreatePageContent() {
                                     className="absolute -inset-2 md:bg-gradient-to-r from-[var(--brand-start)]/30 md:via-[var(--brand-mid)]/20 md:to-[var(--brand-end)]/30 md:rounded-3xl md:blur-2xl md:opacity-40 animate-pulse-slow" />
                     
                                 <div
-                                    className="relative bg-background/90 md:bg-background/90 backdrop-blur-2xl md:backdrop-blur-2xl border border-border/80 md:border-border/80 rounded-3xl md:rounded-3xl overflow-hidden shadow-2xl md:shadow-2xl shadow-[var(--brand-start)]/10 md:shadow-[var(--brand-start)]/10">
+                                    className="relative md:bg-background/90 md:backdrop-blur-2xl md:border md:border-border/80 md:rounded-3xl md:overflow-hidden md:shadow-2xl md:shadow-[var(--brand-start)]/10">
                         
                                     <div
-                                        className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--brand-start)] via-[var(--brand-mid)] to-[var(--brand-end)]" />
-                                    <div className="p-4 sm:p-6 md:p-8">
+                                        className="hidden sm:block absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[var(--brand-start)] via-[var(--brand-mid)] to-[var(--brand-end)]" />
+                                    <div className="p-2 sm:p-6 md:p-8">
                                         <AudioUpload
                                             importFileKey={searchParams.get("fileKey") || undefined}
                                             mode={playMode}
@@ -1570,7 +1570,7 @@ function CreatePageContent() {
                                     </div>
                         
                                     <div
-                                        className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-glow)]/50 to-transparent" />
+                                        className="hidden sm:block absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-glow)]/50 to-transparent" />
                                 </div>
                             </div>
                         </RevealGroup>

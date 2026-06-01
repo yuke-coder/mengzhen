@@ -305,19 +305,17 @@ function applyNodeLevelStyles(container: HTMLElement | null, rootNode: MindMapNo
 
 // 将不同模板的数据结构统一转换为树形结构
 function normalizeToTreeData(data: MindMapData): MindMapNode {
-  const structure = data.structure || data.raw || {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const structure = (data.structure || data.raw || {}) as any;
   
-  // 如果已经是标准的 root 结构，直接返回
   if (structure.root) {
-    return structure.root;
+    return structure.root as MindMapNode;
   }
   
-  // 如果没有 root，尝试直接使用 structure（某些模板可能直接返回根节点）
   if (structure.id && structure.text) {
-    return structure as MindMapNode;
+    return structure as unknown as MindMapNode;
   }
   
-  // 鱼骨图：spine + causes
   if (structure.spine && structure.causes) {
     return {
       id: 'root',

@@ -215,14 +215,14 @@ export function resolvePlayConfig(): PlayConfig | null {
     try {
       const parsed = JSON.parse(savedConfig);
       if (parsed.audios && Array.isArray(parsed.audios)) {
-        audios = parsed.audios.map((a: any) => ({
-          id: a.id,
-          name: a.name,
-          duration: a.duration || 0,
-          size: a.size || a.file?.size || 0,
-          fileKey: a.fileKey,
-          serverUrl: a.serverUrl,
-          dbKey: a.dbKey,
+        audios = parsed.audios.map((a: Record<string, unknown>) => ({
+          id: a.id as string,
+          name: a.name as string,
+          duration: (a.duration as number) || 0,
+          size: (a.size as number) || ((a.file as Record<string, unknown>)?.size as number) || 0,
+          fileKey: a.fileKey as string | undefined,
+          serverUrl: a.serverUrl as string | undefined,
+          dbKey: a.dbKey as string | undefined,
         }));
       }
     } catch {}

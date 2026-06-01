@@ -40,6 +40,7 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
   const [offset, setOffset] = useState(0);
   
   const isDraggingRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
   const isTouchDraggingRef = useRef(false); // 移动端触摸拖拽专用
   const startYRef = useRef(0);
   const startOffsetRef = useRef(0);
@@ -147,6 +148,7 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
     // 忽略未拖拽的情况
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
+    setIsDragging(false);
 
     const hasMomentum = Math.abs(velocityRef.current) > 0.12;
     const snapped = snapToNearest(offset);
@@ -167,6 +169,7 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
 
     e.preventDefault();
     isDraggingRef.current = true;
+    setIsDragging(true);
     startYRef.current = e.clientY;
     startOffsetRef.current = offset;
     lastYRef.current = e.clientY;
@@ -224,6 +227,8 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
     isAnimatingRef.current = false;
     
     isTouchDraggingRef.current = true;
+    isDraggingRef.current = true;
+    setIsDragging(true);
     const touch = e.touches[0];
     startYRef.current = touch.clientY;
     startOffsetRef.current = offset;
@@ -274,6 +279,8 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
   const handleTouchEnd = useCallback(() => {
     if (!isTouchDraggingRef.current) return;
     isTouchDraggingRef.current = false;
+    isDraggingRef.current = false;
+    setIsDragging(false);
     
     // 捕获当前状态
     const currentOffset = offset;
@@ -338,14 +345,13 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
   const containerCenter = (VISIBLE_COUNT * ITEM_HEIGHT) / 2;
 
   return (
-    <div className="flex flex-col items-center" suppressHydrationWarning>
+    <div className="flex flex-col items-center min-w-0 sm:w-20 sm:min-w-20 flex-1 sm:flex-initial" suppressHydrationWarning>
       <div className={cn("text-xs mb-1", isDark ? "text-zinc-500" : "text-zinc-400")}>{label}</div>
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-lg select-none cursor-grab active:cursor-grabbing"
+        className="relative overflow-hidden rounded-lg select-none cursor-grab active:cursor-grabbing w-full"
         style={{
           height: ITEM_HEIGHT * VISIBLE_COUNT,
-          width: 80,
           background: isDark
             ? 'linear-gradient(to bottom, #18181b, #27272a, #18181b)'
             : 'linear-gradient(to bottom, #f4f4f5, #e4e4e7, #f4f4f5)',
@@ -411,7 +417,7 @@ function WheelPickerColumn({ items, value, onChange, onPreviewChange, label, isD
                   height: ITEM_HEIGHT,
                   transform: `translateY(${displayPos}px) scale(${scale})`,
                   opacity,
-                  transition: isDraggingRef.current ? 'none' : 'opacity 150ms ease, transform 150ms ease',
+                  transition: isDragging ? 'none' : 'opacity 150ms ease, transform 150ms ease',
                 }}
                 onClick={() => handleClick(index)}
                 suppressHydrationWarning
@@ -531,7 +537,7 @@ export const WheelDateTimePicker = React.memo(function WheelDateTimePicker({ val
           {safeValue.year}-{String(safeValue.month).padStart(2,'0')}-{String(safeValue.day).padStart(2,'0')} {String(safeValue.hour).padStart(2,'0')}:{String(safeValue.minute).padStart(2,'0')}:{String(safeValue.second).padStart(2,'0')}
         </span>
       </div>
-      <div className="flex items-center gap-1 flex-wrap">
+      <div className="flex items-center gap-1">
         {columns.map(col => (
           <WheelPickerColumn
             key={col.key}
