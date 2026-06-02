@@ -190,7 +190,7 @@ export function UserMenu() {
               )}
             >
               <History className="w-4 h-4" />
-              <span>历史记录</span>
+              <span>我的音频</span>
             </Link>
           </div>
 
