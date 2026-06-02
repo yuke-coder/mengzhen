@@ -748,6 +748,12 @@
   background: transparent;
 }
 
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 :root:not(.dark) .light-bg {
   background: rgba(255, 255, 255, 0.85) !important;
   backdrop-filter: blur(10px);
