@@ -275,8 +275,8 @@ export default function ProfilePage() {
   const handleSubmitRef = useRef(handleSubmit);
   handleSubmitRef.current = handleSubmit;
 
-  const handleCancelRef = useRef(() => router.back());
-  handleCancelRef.current = () => router.back();
+  const handleCancelRef = useRef(navigateBack);
+  handleCancelRef.current = navigateBack;
 
   useEffect(() => {
     const stableSubmit = () => { handleSubmitRef.current(); };
