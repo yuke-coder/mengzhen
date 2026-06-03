@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { LocationCascader, planetValueToText, planetTextToValue, countryValueToText, countryTextToValue } from "@/components/location-cascader";
@@ -236,11 +236,7 @@ export default function ProfilePage() {
         setEditingUsername(false);
         setMessage({ type: "success", text: data.message || "资料更新成功" });
         setTimeout(() => {
-          if (window.location.hostname.includes('preview') || window.location.hostname.includes('dev.coze')) {
-            router.push('/');
-          } else {
-            router.back();
-          }
+          navigateBack();
         }, 800);
       } else {
         setMessage({ type: "error", text: data.error || "更新失败" });
