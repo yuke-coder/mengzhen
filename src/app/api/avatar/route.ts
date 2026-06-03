@@ -163,9 +163,9 @@ export async function POST(request: NextRequest) {
 
 // 默认头像 URL（根据性别）
 const DEFAULT_AVATARS = {
-  male: "https://aka.doubaocdn.com/s/1aJD1wOuCX",
-  female: "https://aka.doubaocdn.com/s/qe1a1wOuCc",
-  secret: "https://aka.doubaocdn.com/s/Q3oJ1wOuCh",
+  male: "/avatars/default-male.png",
+  female: "/avatars/default-female.png",
+  secret: "/avatars/default.png",
 };
 
 export async function DELETE(request: NextRequest) {
