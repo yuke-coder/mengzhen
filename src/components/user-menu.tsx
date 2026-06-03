@@ -33,7 +33,7 @@ function ProfileCard({ user, onEditProfile }: { user: NonNullable<ReturnType<typ
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[var(--brand-start)]/30 shadow-md flex-shrink-0">
           {hasCustomAvatar && user.avatar_url ? (
-            <img src={user.avatar_url} alt="头像" className="w-full h-full object-cover" />
+            <img src={`${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`} alt="头像" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[var(--brand-start)]/20 to-[var(--brand-end)]/20 flex items-center justify-center">
               <User className="w-6 h-6 text-[var(--brand-end)]" />
@@ -157,7 +157,7 @@ export function UserMenu() {
           )}
         >
           {hasCustomAvatar && user.avatar_url ? (
-            <img src={user.avatar_url} alt="头像" className="w-full h-full object-cover" />
+            <img src={`${user.avatar_url}${user.avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`} alt="头像" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[var(--brand-start)]/20 to-[var(--brand-end)]/20 flex items-center justify-center">
               <User className="w-1/2 h-1/2 text-[var(--brand-end)]" />
