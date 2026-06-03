@@ -252,6 +252,25 @@ export default function ProfilePage() {
     }
   };
 
+  const navigateBack = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const fallback = previousPathRef.current || "/";
+    // 在 preview / dev.coze 域名下直接回到首页
+    if (
+      window.location.hostname.includes("preview") ||
+      window.location.hostname.includes("dev.coze")
+    ) {
+      router.push("/");
+      return;
+    }
+    // 历史栈里存在上一页且不是当前页时才用 back，否则用兜底路径
+    if (window.history.length > 1 && document.referrer && !document.referrer.endsWith("/profile")) {
+      router.back();
+    } else {
+      router.push(fallback);
+    }
+  }, [router]);
+
   const startEditUsername = () => {
     setEditingUsername(true);
     setTimeout(() => usernameInputRef.current?.focus(), 0);
