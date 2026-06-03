@@ -51,9 +51,27 @@ export default function ProfilePage() {
   const { saving, setSaving, setSubmitHandler, setCancelHandler } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  // 记录进入 profile 之前的路径，作为 router.back() 失效时的兜底跳转目标
+  const previousPathRef = useRef<string>("/");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [editingUsername, setEditingUsername] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const ref = document.referrer;
+      try {
+        if (ref) {
+          const u = new URL(ref);
+          if (u.origin === window.location.origin && !u.pathname.startsWith("/profile")) {
+            previousPathRef.current = u.pathname + u.search;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
   const [formData, setFormData] = useState<ProfileFormData>({
     username: "",
     nickname: "",
