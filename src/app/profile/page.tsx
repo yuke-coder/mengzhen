@@ -369,7 +369,7 @@ export default function ProfilePage() {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setFormData({ ...formData, gender: option.value as ProfileFormData["gender"] })}
+                      onClick={() => updateFormData({ ...formData, gender: option.value as ProfileFormData["gender"] })}
                       className="flex-1 py-2.5 px-4 rounded-lg border font-medium transition-all"
                       style={{
                         background: formData.gender === option.value ? "var(--brand-start)" : "transparent",
