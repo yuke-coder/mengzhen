@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   useCallback,
   useRef,
   ReactNode,
@@ -30,7 +31,9 @@ export function useNonBlockingToast() {
   return ctx;
 }
 
-// 单个弹窗实例
+const TOTAL_DURATION = 2000;
+const FADE_DURATION = 500;
+
 function ToastInstance({
   toast,
   onDismiss,
@@ -45,13 +48,13 @@ function ToastInstance({
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const elapsedRef = useRef(0);
   const startRef = useRef<number>(0);
-  const TOTAL_DURATION = 2000;
-  const FADE_DURATION = 500;
+  const dismissedRef = useRef(false);
 
   // 入场动画
-  useState(() => {
-    requestAnimationFrame(() => setVisible(true));
-  });
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -60,12 +63,23 @@ function ToastInstance({
     fadeTimerRef.current = null;
   }, []);
 
+  const doDismiss = useCallback(() => {
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
+    setVisible(false);
+    setTimeout(() => onDismiss(toast.id), 300);
+  }, [onDismiss, toast.id]);
+
   const startCountdown = useCallback(() => {
     clearTimers();
     startRef.current = Date.now();
 
-    // 在 TOTAL_DURATION - FADE_DURATION 时开始渐隐
     const remaining = TOTAL_DURATION - elapsedRef.current;
+    if (remaining <= 0) {
+      doDismiss();
+      return;
+    }
+
     const fadeAt = Math.max(0, remaining - FADE_DURATION);
 
     if (fadeAt > 0) {
@@ -77,15 +91,15 @@ function ToastInstance({
     }
 
     timerRef.current = setTimeout(() => {
-      setVisible(false);
-      setTimeout(() => onDismiss(toast.id), 300);
+      doDismiss();
     }, remaining);
-  }, [clearTimers, onDismiss, toast.id]);
+  }, [clearTimers, doDismiss]);
 
   // 启动倒计时
-  useState(() => {
+  useEffect(() => {
     startCountdown();
-  });
+    return clearTimers;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMouseEnter = useCallback(() => {
     setHovered(true);
@@ -99,28 +113,26 @@ function ToastInstance({
     if (elapsedRef.current < TOTAL_DURATION) {
       startCountdown();
     } else {
-      onDismiss(toast.id);
+      doDismiss();
     }
-  }, [startCountdown, onDismiss, toast.id]);
+  }, [startCountdown, doDismiss]);
 
   const handleUndo = useCallback(() => {
     toast.undoAction?.();
     clearTimers();
-    setVisible(false);
-    setTimeout(() => onDismiss(toast.id), 300);
-  }, [toast, clearTimers, onDismiss]);
+    doDismiss();
+  }, [toast, clearTimers, doDismiss]);
 
   const handleClose = useCallback(() => {
     clearTimers();
-    setVisible(false);
-    setTimeout(() => onDismiss(toast.id), 300);
-  }, [clearTimers, onDismiss, toast.id]);
+    doDismiss();
+  }, [clearTimers, doDismiss]);
 
   return (
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg border transition-all duration-300 select-none"
+      className="flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg border select-none"
       style={{
         position: "relative",
         background: "var(--popover)",
@@ -184,7 +196,7 @@ export function NonBlockingToastProvider({ children }: { children: ReactNode }) 
   return (
     <NonBlockingToastContext.Provider value={{ showToast, dismissToast }}>
       {children}
-      {/* 弹窗容器 - 固定在顶部居中，非阻塞 */}
+      {/* 弹窗容器 - 固定在顶部居中，非阻塞（pointer-events-none 允许穿透点击） */}
       <div
         className="fixed top-16 left-0 right-0 z-[9999] flex flex-col items-center gap-2 pointer-events-none"
         style={{ paddingTop: "8px" }}
