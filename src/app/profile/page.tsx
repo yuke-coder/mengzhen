@@ -592,31 +592,6 @@ export default function ProfilePage() {
               {formData.bio.length}/500
             </p>
           </div>
-
-          {/* 保存 & 取消 */}
-          <div className="flex items-center justify-end gap-3 pt-2 pb-8">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-medium text-sm transition-all hover:bg-muted/80 border border-border"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              取消
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, var(--brand-start), var(--brand-end))",
-                color: "white",
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              保存
-            </button>
-          </div>
         </form>
       </div>
     </div>
