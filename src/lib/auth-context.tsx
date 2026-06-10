@@ -33,12 +33,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const isLoggingInRef = useRef(false);
+  const checkAuthAbortRef = useRef<AbortController | null>(null);
 
   const checkAuth = useCallback(async () => {
+    // 取消上一次未完成的请求
+    if (checkAuthAbortRef.current) {
+      checkAuthAbortRef.current.abort();
+    }
+    const abortController = new AbortController();
+    checkAuthAbortRef.current = abortController;
+
     try {
       const res = await fetch('/api/auth/me', {
         credentials: 'include',
         cache: 'no-store',
+        signal: abortController.signal,
       });
       const data = await res.json();
       if (data.success && data.user) {
@@ -46,10 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUser(null);
       }
-    } catch {
+    } catch (err) {
+      // 被取消的请求不更新状态
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       setUser(null);
     } finally {
-      setLoading(false);
+      if (!abortController.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, []);
 
