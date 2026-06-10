@@ -8,7 +8,7 @@ import StarryBackground from "@/components/starry-background";
 import { TemplateSelectorModal } from "@/components/template-selector-modal";
 import { useTemplateModal, TemplateModalProvider } from "@/lib/template-modal-context";
 import { ProfileProvider, useProfile } from "@/lib/profile-context";
-import { NonBlockingToastProvider, useNonBlockingToast } from "@/components/non-blocking-toast";
+import { NonBlockingToastProvider } from "@/components/non-blocking-toast";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { MindMapTemplate } from "@/lib/mindmap-types";
@@ -47,13 +47,15 @@ function ProfileTemplateModal() {
   );
 }
 
-function SaveButton() {
-  const { saving, submitHandler, cancelHandler } = useProfile();
-  if (!submitHandler) return null;
+function NavButtons() {
+  const { saving } = useProfile();
+  const router = useRouter();
+
   return (
-    <>
+    <div className="flex items-center gap-2">
       <button
-        onClick={cancelHandler || undefined}
+        type="button"
+        onClick={() => router.back()}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all hover:bg-muted/80"
         style={{ color: "var(--muted-foreground)" }}
       >
@@ -61,19 +63,20 @@ function SaveButton() {
         取消
       </button>
       <button
-        onClick={submitHandler}
+        type="submit"
+        form="profile-form"
         disabled={saving}
         className="flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
         style={{
           background: "linear-gradient(135deg, var(--brand-start), var(--brand-end))",
           color: "white",
-          opacity: saving ? 0.7 : 1
+          opacity: saving ? 0.7 : 1,
         }}
       >
         {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
         保存
       </button>
-    </>
+    </div>
   );
 }
 
@@ -118,7 +121,7 @@ function ProfileLayoutInner({ children }: { children: React.ReactNode }) {
             <span className="text-sm text-foreground/60 ml-3 px-4 py-2 rounded-full bg-[var(--brand-start)]/10 cursor-default">编辑资料</span>
           </nav>
           <div className="z-10 flex items-center gap-3">
-            <SaveButton />
+            <NavButtons />
             <UserMenu />
             <ThemeToggle />
           </div>
