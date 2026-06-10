@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: !isDev,
-      sameSite: isDev ? 'lax' : 'none',
+      sameSite: 'lax',
       maxAge: SESSION_MAX_AGE,
       path: '/',
     });
