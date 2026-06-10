@@ -91,6 +91,11 @@ self.addEventListener('fetch', (event) => {
   if (isSupabaseRequest(url)) return;
 
   if (url.pathname.startsWith('/api/')) {
+    // 认证相关 API 永远不缓存
+    if (url.pathname.startsWith('/api/auth/')) {
+      return;
+    }
+
     if (url.pathname.includes('/storage/') || url.pathname.includes('/audio/proxy')) {
       return;
     }
