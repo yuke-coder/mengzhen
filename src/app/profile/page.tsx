@@ -25,7 +25,6 @@ import {
   Heart,
   Loader2,
   Edit3,
-  Save,
 } from "lucide-react";
 
 interface LocationValue {
