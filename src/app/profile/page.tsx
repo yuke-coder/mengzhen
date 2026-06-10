@@ -471,7 +471,7 @@ export default function ProfilePage() {
             <input
               type="text"
               value={formData.nickname}
-              onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+              onChange={(e) => updateFormData({ ...formData, nickname: e.target.value })}
               maxLength={30}
               placeholder="不填则显示用户名"
               className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 glass"
