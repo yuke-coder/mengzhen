@@ -411,7 +411,7 @@ export default function ProfilePage() {
                     ref={usernameInputRef}
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    onChange={(e) => updateFormData({ ...formData, username: e.target.value })}
                     placeholder="输入用户名"
                     className="flex-1 px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 glass"
                     style={{
@@ -425,7 +425,7 @@ export default function ProfilePage() {
                     type="button"
                     onClick={() => {
                       setEditingUsername(false);
-                      setFormData((prev) => ({ ...prev, username: user.username || "" }));
+                      updateFormData((prev) => ({ ...prev, username: user.username || "" }));
                     }}
                     className="px-4 py-3 rounded-lg border font-medium transition-colors hover:bg-[var(--muted)]"
                     style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
