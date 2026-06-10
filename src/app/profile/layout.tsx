@@ -8,6 +8,7 @@ import StarryBackground from "@/components/starry-background";
 import { TemplateSelectorModal } from "@/components/template-selector-modal";
 import { useTemplateModal, TemplateModalProvider } from "@/lib/template-modal-context";
 import { ProfileProvider, useProfile } from "@/lib/profile-context";
+import { NonBlockingToastProvider, useNonBlockingToast } from "@/components/non-blocking-toast";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { MindMapTemplate } from "@/lib/mindmap-types";
