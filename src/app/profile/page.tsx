@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button";
 import {
-  Brain,
   Camera,
   User,
   Mail,
@@ -26,7 +25,6 @@ import {
   Heart,
   Loader2,
   Edit3,
-  AlertCircle,
 } from "lucide-react";
 
 interface LocationValue {
@@ -50,12 +48,12 @@ interface ProfileFormData {
 export default function ProfilePage() {
   const { user, loading, updateUser } = useAuth();
   const router = useRouter();
-  const { saving, setSaving, setSubmitHandler, setCancelHandler } = useProfile();
+  const { saving, setSaving, setSubmitHandler, setCancelHandler, snapshot, setSnapshot, setUndoHandler } = useProfile();
+  const { showToast, dismissAll } = useNonBlockingToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [editingUsername, setEditingUsername] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [formData, setFormData] = useState<ProfileFormData>({
     username: "",
     nickname: "",
@@ -117,13 +115,13 @@ export default function ProfilePage() {
 
     // 验证文件类型
     if (!file.type.startsWith("image/")) {
-      setMessage({ type: "error", text: "请选择图片文件" });
+      showToast({ message: "请选择图片文件" });
       return;
     }
 
     // 验证文件大小（最大 5MB）
     if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: "error", text: "图片大小不能超过 5MB" });
+      showToast({ message: "图片大小不能超过 5MB" });
       return;
     }
 
@@ -144,12 +142,12 @@ export default function ProfilePage() {
         const timestamp = Date.now();
         const newAvatarUrl = `${data.avatar_url}?t=${timestamp}`;
         updateUser({ avatar_url: newAvatarUrl });
-        setMessage({ type: "success", text: "头像上传成功" });
+        showToast({ message: "头像上传成功" });
       } else {
-        setMessage({ type: "error", text: data.error || "上传失败" });
+        showToast({ message: data.error || "上传失败" });
       }
     } catch {
-      setMessage({ type: "error", text: "上传失败，请重试" });
+      showToast({ message: "上传失败，请重试" });
     } finally {
       setUploadingAvatar(false);
     }
@@ -175,10 +173,10 @@ export default function ProfilePage() {
       const data = await res.json();
       if (data.success) {
         updateUser({ avatar_url: defaultAvatarUrl });
-        setMessage({ type: "success", text: "头像已重置" });
+        showToast({ message: "头像已重置" });
       }
     } catch {
-      setMessage({ type: "error", text: "重置失败" });
+      showToast({ message: "重置失败" });
     } finally {
       setUploadingAvatar(false);
     }
@@ -188,8 +186,11 @@ export default function ProfilePage() {
     e?.preventDefault();
     if (!user) return;
 
+    // 保存编辑前数据快照（用于撤销）
+    const currentSnapshot = JSON.parse(JSON.stringify(formData));
+    setSnapshot(currentSnapshot);
+
     setSaving(true);
-    setMessage(null);
     try {
       // 将 location 对象转换为字符串格式
       const loc = formData.location;
@@ -208,7 +209,7 @@ export default function ProfilePage() {
 
       const data = await res.json();
       if (data.success) {
-        // 更新本地状态
+        // 先完成数据更新
         updateUser({
           username: data.profile.username,
           nickname: data.profile.nickname,
@@ -225,20 +226,61 @@ export default function ProfilePage() {
           nickname: data.profile.nickname,
         }));
         setEditingUsername(false);
-        setMessage({ type: "success", text: data.message || "资料更新成功" });
-        // 保存成功后返回上一页（预览环境使用 router.push）
+
+        // 注册撤销操作
+        const undoAction = () => {
+          // 用快照数据回滚到服务器
+          const undoLoc = currentSnapshot.location;
+          const undoSubmitData = {
+            ...currentSnapshot,
+            location: undoLoc.planet || undoLoc.country || undoLoc.province || undoLoc.city || undoLoc.district
+              ? [undoLoc.planet ? planetValueToText(undoLoc.planet) : '', undoLoc.country ? countryValueToText(undoLoc.country) : '', undoLoc.province, undoLoc.city, undoLoc.district].filter(Boolean).join('/')
+              : undefined,
+          };
+          fetch("/api/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(undoSubmitData),
+          }).then((undoRes) => undoRes.json()).then((undoData) => {
+            if (undoData.success) {
+              setFormData(currentSnapshot);
+              updateUser({
+                username: undoData.profile.username,
+                nickname: undoData.profile.nickname,
+                avatar_url: undoData.profile.avatar_url,
+                gender: undoData.profile.gender || null,
+                birthday: undoData.profile.birthday || null,
+                location: undoData.profile.location || null,
+                signature: undoData.profile.signature || null,
+                bio: undoData.profile.bio || null,
+              });
+              showToast({ message: "已撤销修改" });
+            }
+          });
+        };
+        setUndoHandler(() => undoAction);
+
+        // 同步显示非阻塞弹窗
+        showToast({
+          message: data.message || "资料更新成功",
+          undoAction,
+          undoLabel: "撤销",
+        });
+
+        // 弹窗显示后延迟返回上一页
         setTimeout(() => {
           if (window.location.hostname.includes('preview') || window.location.hostname.includes('dev.coze')) {
             router.push('/');
           } else {
             router.back();
           }
-        }, 800);
+        }, 2200);
       } else {
-        setMessage({ type: "error", text: data.error || "更新失败" });
+        showToast({ message: data.error || "更新失败" });
       }
     } catch {
-      setMessage({ type: "error", text: "更新失败，请重试" });
+      showToast({ message: "更新失败，请重试" });
     } finally {
       setSaving(false);
     }
@@ -277,20 +319,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {message && (
-          <div
-            className="mb-6 p-4 rounded-lg border flex items-center gap-3"
-            style={{
-              background: message.type === "success" ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)",
-              borderColor: message.type === "success" ? "rgba(34, 197, 94, 0.3)" : "rgba(239, 68, 68, 0.3)",
-              color: message.type === "success" ? "#22c55e" : "#ef4444",
-            }}
-          >
-            {message.type === "error" ? <AlertCircle className="w-5 h-5 flex-shrink-0" /> : null}
-            <span>{message.text}</span>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar & Gender Section */}
           <div className="p-6 rounded-xl border glass border-border/50">

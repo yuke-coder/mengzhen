@@ -21,6 +21,7 @@ interface ToastItem {
 interface NonBlockingToastContextValue {
   showToast: (toast: Omit<ToastItem, "id">) => void;
   dismissToast: (id: string) => void;
+  dismissAll: () => void;
 }
 
 const NonBlockingToastContext = createContext<NonBlockingToastContextValue | null>(null);
@@ -193,8 +194,12 @@ export function NonBlockingToastProvider({ children }: { children: ReactNode }) 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const dismissAll = useCallback(() => {
+    setToasts([]);
+  }, []);
+
   return (
-    <NonBlockingToastContext.Provider value={{ showToast, dismissToast }}>
+    <NonBlockingToastContext.Provider value={{ showToast, dismissToast, dismissAll }}>
       {children}
       {/* 弹窗容器 - 固定在顶部居中，非阻塞（pointer-events-none 允许穿透点击） */}
       <div
