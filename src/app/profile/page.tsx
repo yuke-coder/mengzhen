@@ -554,7 +554,7 @@ export default function ProfilePage() {
             <input
               type="text"
               value={formData.signature}
-              onChange={(e) => setFormData({ ...formData, signature: e.target.value })}
+              onChange={(e) => updateFormData({ ...formData, signature: e.target.value })}
               maxLength={100}
               placeholder="一句话介绍自己"
               className="w-full px-4 py-3 rounded-lg border transition-colors focus:outline-none focus:ring-2 glass"
@@ -575,7 +575,7 @@ export default function ProfilePage() {
             </label>
             <textarea
               value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              onChange={(e) => updateFormData({ ...formData, bio: e.target.value })}
               maxLength={500}
               rows={4}
               placeholder="详细介绍一下自己..."
