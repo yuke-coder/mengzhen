@@ -64,6 +64,12 @@ export default function ProfilePage() {
     bio: "",
   });
 
+  // 用户编辑时自动关闭弹窗
+  const updateFormData = useCallback((value: ProfileFormData | ((prev: ProfileFormData) => ProfileFormData)) => {
+    dismissAll();
+    setFormData(value);
+  }, [dismissAll]);
+
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/login");
