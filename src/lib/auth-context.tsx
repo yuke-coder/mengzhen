@@ -35,12 +35,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isLoggingInRef = useRef(false);
 
   const checkAuth = useCallback(async () => {
-    // 防止在登录过程中重复检查
-    if (isLoggingInRef.current) return;
-    
     try {
       const res = await fetch('/api/auth/me', {
         credentials: 'include',
+        cache: 'no-store',
       });
       const data = await res.json();
       if (data.success && data.user) {
