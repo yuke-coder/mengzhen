@@ -138,7 +138,9 @@ export default function ProfileLayout({
   return (
     <TemplateModalProvider>
       <ProfileProvider>
-        <ProfileLayoutInner>{children}</ProfileLayoutInner>
+        <NonBlockingToastProvider>
+          <ProfileLayoutInner>{children}</ProfileLayoutInner>
+        </NonBlockingToastProvider>
       </ProfileProvider>
     </TemplateModalProvider>
   );
