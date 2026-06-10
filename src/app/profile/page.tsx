@@ -48,7 +48,7 @@ interface ProfileFormData {
 export default function ProfilePage() {
   const { user, loading, updateUser } = useAuth();
   const router = useRouter();
-  const { saving, setSaving, setSubmitHandler, setCancelHandler, snapshot, setSnapshot, setUndoHandler } = useProfile();
+  const { saving, setSaving, snapshot, setSnapshot } = useProfile();
   const { showToast, dismissAll } = useNonBlockingToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
@@ -297,23 +297,6 @@ export default function ProfilePage() {
     setTimeout(() => usernameInputRef.current?.focus(), 0);
   };
 
-  const handleSubmitRef = useRef(handleSubmit);
-  handleSubmitRef.current = handleSubmit;
-
-  const handleCancelRef = useRef(() => router.back());
-  handleCancelRef.current = () => router.back();
-
-  useEffect(() => {
-    const stableSubmit = () => { handleSubmitRef.current(); };
-    const stableCancel = () => { handleCancelRef.current(); };
-    setSubmitHandler(() => stableSubmit);
-    setCancelHandler(() => stableCancel);
-    return () => {
-      setSubmitHandler(() => null);
-      setCancelHandler(() => null);
-    };
-  }, []);
-
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -325,7 +308,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form id="profile-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar & Gender Section */}
           <div className="p-6 rounded-xl border glass border-border/50">
             <div className="flex items-center gap-6">
