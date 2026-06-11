@@ -127,7 +127,6 @@ function ToastInstance({
   }, [startCountdown, doDismiss]);
 
   const handleUndo = useCallback(() => {
-    console.log("[Toast] Undo clicked, setting cancelledRef=true");
     cancelledRef.current = true; // 撤销：阻止 onAutoClose
     toast.undoAction?.();
     clearTimers();
@@ -135,7 +134,6 @@ function ToastInstance({
   }, [toast, clearTimers, doDismiss]);
 
   const handleClose = useCallback(() => {
-    console.log("[Toast] Close clicked, setting cancelledRef=true");
     cancelledRef.current = true; // 手动关闭：阻止 onAutoClose
     clearTimers();
     doDismiss();
