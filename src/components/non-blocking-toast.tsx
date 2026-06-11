@@ -92,7 +92,6 @@ function ToastInstance({
     }
 
     timerRef.current = setTimeout(() => {
-      console.log("[Toast] Timer expired, cancelledRef=", cancelledRef.current);
       if (!cancelledRef.current) onAutoCloseRef.current?.();
       doDismiss();
     }, remaining);
