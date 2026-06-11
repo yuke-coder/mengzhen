@@ -81,6 +81,12 @@ function NavButtons() {
 }
 
 function ProfileLayoutInner({ children }: { children: React.ReactNode }) {
+  // 隐藏根布局的全局导航栏，避免与 profile 专属导航栏重叠
+  useEffect(() => {
+    const el = document.getElementById("main-navbar");
+    if (el) el.style.display = "none";
+    return () => { if (el) el.style.display = ""; };
+  }, []);
   return (
     <div className="min-h-screen text-foreground overflow-x-hidden relative z-10">
       <div className="fixed inset-0 overflow-hidden z-0">
