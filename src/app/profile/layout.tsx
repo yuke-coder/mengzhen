@@ -48,7 +48,7 @@ function ProfileTemplateModal() {
 }
 
 function NavButtons() {
-  const { saving } = useProfile();
+  const { saving, isDirty } = useProfile();
   const router = useRouter();
 
   return (
@@ -62,20 +62,22 @@ function NavButtons() {
         <X className="w-3.5 h-3.5" />
         取消
       </button>
-      <button
-        type="submit"
-        form="profile-form"
-        disabled={saving}
-        className="flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
-        style={{
-          background: "linear-gradient(135deg, var(--brand-start), var(--brand-end))",
-          color: "white",
-          opacity: saving ? 0.7 : 1,
-        }}
-      >
-        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-        保存
-      </button>
+      {isDirty && (
+        <button
+          type="submit"
+          form="profile-form"
+          disabled={saving}
+          className="flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
+          style={{
+            background: "linear-gradient(135deg, var(--brand-start), var(--brand-end))",
+            color: "white",
+            opacity: saving ? 0.7 : 1,
+          }}
+        >
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+          保存
+        </button>
+      )}
     </div>
   );
 }
