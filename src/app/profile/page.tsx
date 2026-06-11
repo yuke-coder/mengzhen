@@ -94,7 +94,7 @@ export default function ProfilePage() {
     }
   }, [loading, user, router]);
 
-  // 加载用户名修改限制信息
+  // 加载个人资料
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -113,7 +113,7 @@ export default function ProfilePage() {
             if (parts.length >= 4) locationObj.city = parts[3] || "";
             if (parts.length >= 5) locationObj.district = parts[4] || "";
           }
-          setFormData({
+          const initialData: ProfileFormData = {
             username: data.profile.username || "",
             nickname: data.profile.nickname || data.profile.username || "",
             gender: data.profile.gender || "",
@@ -121,7 +121,10 @@ export default function ProfilePage() {
             location: locationObj,
             signature: data.profile.signature || "",
             bio: data.profile.bio || "",
-          });
+          };
+          originalDataRef.current = initialData; // 保存原始数据
+          setFormData(initialData);
+          setIsDirty(false); // 初始状态没有编辑痕迹
         }
       } catch (error) {
         console.error("加载资料失败:", error);
@@ -131,7 +134,7 @@ export default function ProfilePage() {
     if (user) {
       loadProfile();
     }
-  }, [user]);
+  }, [user, setIsDirty]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
