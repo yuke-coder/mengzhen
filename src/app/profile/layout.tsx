@@ -9,7 +9,7 @@ import { TemplateSelectorModal } from "@/components/template-selector-modal";
 import { useTemplateModal, TemplateModalProvider } from "@/lib/template-modal-context";
 import { ProfileProvider, useProfile } from "@/lib/profile-context";
 import { NonBlockingToastProvider } from "@/components/non-blocking-toast";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MindMapTemplate } from "@/lib/mindmap-types";
 
