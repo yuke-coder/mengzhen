@@ -216,6 +216,7 @@ export default function ProfilePage() {
     // 保存编辑前数据快照（用于撤销）
     const currentSnapshot = JSON.parse(JSON.stringify(formData));
     setSnapshot(currentSnapshot);
+    hasUndoneRef.current = false; // 重置撤销标记
 
     setSaving(true);
     try {
@@ -236,6 +237,19 @@ export default function ProfilePage() {
 
       const data = await res.json();
       if (data.success) {
+        // 更新原始数据基准为刚保存的新状态
+        const newOriginal: ProfileFormData = {
+          username: data.profile.username || "",
+          nickname: data.profile.nickname || "",
+          gender: data.profile.gender || "",
+          birthday: data.profile.birthday || "",
+          location: formData.location,
+          signature: data.profile.signature || "",
+          bio: data.profile.bio || "",
+        };
+        originalDataRef.current = newOriginal;
+        setIsDirty(false);
+
         // 先完成数据更新
         updateUser({
           username: data.profile.username,
@@ -256,7 +270,7 @@ export default function ProfilePage() {
 
         // 注册撤销操作
         const undoAction = () => {
-          // 用快照数据回滚到服务器
+          hasUndoneRef.current = true; // 标记：已撤销，不跳转
           const undoLoc = currentSnapshot.location;
           const undoSubmitData = {
             ...currentSnapshot,
@@ -271,7 +285,10 @@ export default function ProfilePage() {
             body: JSON.stringify(undoSubmitData),
           }).then((undoRes) => undoRes.json()).then((undoData) => {
             if (undoData.success) {
+              // 撤销后，原始数据基准也回滚
+              originalDataRef.current = currentSnapshot;
               setFormData(currentSnapshot);
+              setIsDirty(false);
               updateUser({
                 username: undoData.profile.username,
                 nickname: undoData.profile.nickname,
@@ -292,7 +309,11 @@ export default function ProfilePage() {
           message: data.message || "资料更新成功",
           undoAction,
           undoLabel: "撤销",
-          onAutoClose: () => router.back(),
+          onAutoClose: () => {
+            if (!hasUndoneRef.current) {
+              router.back();
+            }
+          },
         });
       } else {
         showToast({ message: data.error || "更新失败" });
