@@ -16,6 +16,7 @@ interface ToastItem {
   message: string;
   undoAction?: () => void;
   undoLabel?: string;
+  onAutoClose?: () => void;
 }
 
 interface NonBlockingToastContextValue {
@@ -50,8 +51,8 @@ function ToastInstance({
   const elapsedRef = useRef(0);
   const startRef = useRef<number>(0);
   const dismissedRef = useRef(false);
+  const autoClosedRef = useRef(false);
 
-  // 入场动画
   useEffect(() => {
     const raf = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(raf);
@@ -64,9 +65,10 @@ function ToastInstance({
     fadeTimerRef.current = null;
   }, []);
 
-  const doDismiss = useCallback(() => {
+  const doDismiss = useCallback((autoClose: boolean = false) => {
     if (dismissedRef.current) return;
     dismissedRef.current = true;
+    if (autoClose) autoClosedRef.current = true;
     setVisible(false);
     setTimeout(() => onDismiss(toast.id), 300);
   }, [onDismiss, toast.id]);
@@ -77,26 +79,24 @@ function ToastInstance({
 
     const remaining = TOTAL_DURATION - elapsedRef.current;
     if (remaining <= 0) {
-      doDismiss();
+      toast.onAutoClose?.();
+      doDismiss(true);
       return;
     }
 
     const fadeAt = Math.max(0, remaining - FADE_DURATION);
-
     if (fadeAt > 0) {
-      fadeTimerRef.current = setTimeout(() => {
-        setFading(true);
-      }, fadeAt);
+      fadeTimerRef.current = setTimeout(() => setFading(true), fadeAt);
     } else {
       setFading(true);
     }
 
     timerRef.current = setTimeout(() => {
-      doDismiss();
+      toast.onAutoClose?.();
+      doDismiss(true);
     }, remaining);
-  }, [clearTimers, doDismiss]);
+  }, [clearTimers, doDismiss, toast]);
 
-  // 启动倒计时
   useEffect(() => {
     startCountdown();
     return clearTimers;
@@ -114,19 +114,20 @@ function ToastInstance({
     if (elapsedRef.current < TOTAL_DURATION) {
       startCountdown();
     } else {
-      doDismiss();
+      toast.onAutoClose?.();
+      doDismiss(true);
     }
-  }, [startCountdown, doDismiss]);
+  }, [startCountdown, doDismiss, toast]);
 
   const handleUndo = useCallback(() => {
     toast.undoAction?.();
     clearTimers();
-    doDismiss();
+    doDismiss(false); // 撤销不触发 onAutoClose
   }, [toast, clearTimers, doDismiss]);
 
   const handleClose = useCallback(() => {
     clearTimers();
-    doDismiss();
+    doDismiss(false); // 手动关闭不触发 onAutoClose
   }, [clearTimers, doDismiss]);
 
   return (
@@ -147,24 +148,15 @@ function ToastInstance({
           : "0 4px 16px -2px rgba(0,0,0,0.1), 0 0 0 1px var(--border)",
       }}
     >
-      <CheckCircle2
-        className="w-4 h-4 shrink-0"
-        style={{ color: "var(--brand-end)" }}
-      />
-      <span
-        className="text-sm font-medium whitespace-nowrap"
-        style={{ color: "var(--popover-foreground)" }}
-      >
+      <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "var(--brand-end)" }} />
+      <span className="text-sm font-medium whitespace-nowrap" style={{ color: "var(--popover-foreground)" }}>
         {toast.message}
       </span>
       {toast.undoAction && (
         <button
           onClick={handleUndo}
           className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-200 hover:opacity-80 active:scale-95 shrink-0"
-          style={{
-            background: "linear-gradient(135deg, var(--brand-start), var(--brand-end))",
-            color: "white",
-          }}
+          style={{ background: "linear-gradient(135deg, var(--brand-start), var(--brand-end))", color: "white" }}
         >
           <Undo2 className="w-3 h-3" />
           {toast.undoLabel || "撤销"}
@@ -201,11 +193,7 @@ export function NonBlockingToastProvider({ children }: { children: ReactNode }) 
   return (
     <NonBlockingToastContext.Provider value={{ showToast, dismissToast, dismissAll }}>
       {children}
-      {/* 弹窗容器 - 固定在顶部居中，非阻塞（pointer-events-none 允许穿透点击） */}
-      <div
-        className="fixed top-16 left-0 right-0 z-[9999] flex flex-col items-center gap-2 pointer-events-none"
-        style={{ paddingTop: "8px" }}
-      >
+      <div className="fixed top-16 left-0 right-0 z-[9999] flex flex-col items-center gap-2 pointer-events-none" style={{ paddingTop: "8px" }}>
         {toasts.map((toast) => (
           <ToastInstance key={toast.id} toast={toast} onDismiss={dismissToast} />
         ))}
