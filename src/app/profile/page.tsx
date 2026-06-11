@@ -48,10 +48,12 @@ interface ProfileFormData {
 export default function ProfilePage() {
   const { user, loading, updateUser } = useAuth();
   const router = useRouter();
-  const { saving, setSaving, snapshot, setSnapshot } = useProfile();
+  const { saving, setSaving, snapshot, setSnapshot, isDirty, setIsDirty } = useProfile();
   const { showToast, dismissAll } = useNonBlockingToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const originalDataRef = useRef<ProfileFormData | null>(null); // 保存原始数据用于 dirty 检测
+  const hasUndoneRef = useRef(false); // 撤销标记，用于阻止跳转
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [editingUsername, setEditingUsername] = useState(false);
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -64,11 +66,27 @@ export default function ProfilePage() {
     bio: "",
   });
 
-  // 用户编辑时自动关闭弹窗
+  // 深度比较两个表单数据是否相同
+  const isFormDirty = useCallback((a: ProfileFormData | null, b: ProfileFormData): boolean => {
+    if (!a) return false;
+    return JSON.stringify(a) !== JSON.stringify(b);
+  }, []);
+
+  // 用户编辑时自动关闭弹窗并更新 dirty 状态
   const updateFormData = useCallback((value: ProfileFormData | ((prev: ProfileFormData) => ProfileFormData)) => {
     dismissAll();
-    setFormData(value);
-  }, [dismissAll]);
+    if (typeof value === 'function') {
+      const updater = value as (prev: ProfileFormData) => ProfileFormData;
+      setFormData((prev) => {
+        const next = updater(prev);
+        setIsDirty(isFormDirty(originalDataRef.current, next));
+        return next;
+      });
+    } else {
+      setIsDirty(isFormDirty(originalDataRef.current, value));
+      setFormData(value);
+    }
+  }, [dismissAll, setIsDirty, isFormDirty]);
 
   useEffect(() => {
     if (!loading && !user) {
