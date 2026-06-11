@@ -51,7 +51,11 @@ function ToastInstance({
   const elapsedRef = useRef(0);
   const startRef = useRef<number>(0);
   const dismissedRef = useRef(false);
-  const autoClosedRef = useRef(false);
+  const cancelledRef = useRef(false); // 撤销或手动关闭时标记为 true
+  const onAutoCloseRef = useRef(toast.onAutoClose);
+
+  // 保持 ref 同步
+  onAutoCloseRef.current = toast.onAutoClose;
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setVisible(true));
@@ -65,22 +69,18 @@ function ToastInstance({
     fadeTimerRef.current = null;
   }, []);
 
-  const doDismiss = useCallback((autoClose: boolean = false) => {
+  const doDismiss = useCallback(() => {
     if (dismissedRef.current) return;
     dismissedRef.current = true;
-    if (autoClose) autoClosedRef.current = true;
     setVisible(false);
     setTimeout(() => onDismiss(toast.id), 300);
   }, [onDismiss, toast.id]);
 
-  const startCountdown = useCallback(() => {
-    clearTimers();
-    startRef.current = Date.now();
-
+  const scheduleAutoClose = useCallback(() => {
     const remaining = TOTAL_DURATION - elapsedRef.current;
     if (remaining <= 0) {
-      toast.onAutoClose?.();
-      doDismiss(true);
+      if (!cancelledRef.current) onAutoCloseRef.current?.();
+      doDismiss();
       return;
     }
 
@@ -92,10 +92,16 @@ function ToastInstance({
     }
 
     timerRef.current = setTimeout(() => {
-      toast.onAutoClose?.();
-      doDismiss(true);
+      if (!cancelledRef.current) onAutoCloseRef.current?.();
+      doDismiss();
     }, remaining);
-  }, [clearTimers, doDismiss, toast]);
+  }, [doDismiss]);
+
+  const startCountdown = useCallback(() => {
+    clearTimers();
+    startRef.current = Date.now();
+    scheduleAutoClose();
+  }, [clearTimers, scheduleAutoClose]);
 
   useEffect(() => {
     startCountdown();
@@ -114,20 +120,22 @@ function ToastInstance({
     if (elapsedRef.current < TOTAL_DURATION) {
       startCountdown();
     } else {
-      toast.onAutoClose?.();
-      doDismiss(true);
+      if (!cancelledRef.current) onAutoCloseRef.current?.();
+      doDismiss();
     }
-  }, [startCountdown, doDismiss, toast]);
+  }, [startCountdown, doDismiss]);
 
   const handleUndo = useCallback(() => {
+    cancelledRef.current = true; // 撤销：阻止 onAutoClose
     toast.undoAction?.();
     clearTimers();
-    doDismiss(false); // 撤销不触发 onAutoClose
+    doDismiss();
   }, [toast, clearTimers, doDismiss]);
 
   const handleClose = useCallback(() => {
+    cancelledRef.current = true; // 手动关闭：阻止 onAutoClose
     clearTimers();
-    doDismiss(false); // 手动关闭不触发 onAutoClose
+    doDismiss();
   }, [clearTimers, doDismiss]);
 
   return (
