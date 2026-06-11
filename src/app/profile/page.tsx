@@ -266,21 +266,12 @@ export default function ProfilePage() {
           });
         };
 
-        // 同步显示非阻塞弹窗
-        showToast({
+        // 先执行跳转，弹窗在目标页面显示
+        sessionStorage.setItem("profile-toast", JSON.stringify({
           message: data.message || "资料更新成功",
-          undoAction,
-          undoLabel: "撤销",
-        });
-
-        // 弹窗显示后延迟返回上一页
-        setTimeout(() => {
-          if (window.location.hostname.includes('preview') || window.location.hostname.includes('dev.coze')) {
-            router.push('/');
-          } else {
-            router.back();
-          }
-        }, 2200);
+          undoSnapshot: currentSnapshot,
+        }));
+        router.back();
       } else {
         showToast({ message: data.error || "更新失败" });
       }
