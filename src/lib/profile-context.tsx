@@ -7,6 +7,8 @@ interface ProfileContextValue {
   setSaving: (saving: boolean) => void;
   snapshot: unknown | null;
   setSnapshot: (data: unknown) => void;
+  isDirty: boolean;
+  setIsDirty: (dirty: boolean) => void;
 }
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -14,9 +16,10 @@ const ProfileContext = createContext<ProfileContextValue | null>(null);
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [saving, setSaving] = useState(false);
   const [snapshot, setSnapshot] = useState<unknown | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   return (
-    <ProfileContext.Provider value={{ saving, setSaving, snapshot, setSnapshot }}>
+    <ProfileContext.Provider value={{ saving, setSaving, snapshot, setSnapshot, isDirty, setIsDirty }}>
       {children}
     </ProfileContext.Provider>
   );
