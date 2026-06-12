@@ -119,7 +119,7 @@ export default function Navbar({ activePage, onScrollToSection }: NavbarProps) {
   };
 
   return (
-    <header id="main-navbar" className="fixed top-0 left-0 right-0 z-[400] bg-background/80 backdrop-blur-xl border-b border-border/50">
+    <header id="main-navbar" className="fixed top-0 left-0 right-0 z-[9999] bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between relative">
         {/* 左侧：Logo + 品牌名 */}
         <div className="flex items-center gap-4 z-30">
