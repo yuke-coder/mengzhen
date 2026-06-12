@@ -6,10 +6,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+// Next.js 15+ App Router route handler 配置
 export const config = {
-  api: {
-    bodySizeLimit: "100mb",
-  },
+  bodySizeLimit: "100mb",
 };
 
 const ALLOWED_TYPES = [
