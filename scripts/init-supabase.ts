@@ -184,7 +184,7 @@ async function main() {
       allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
     },
     audios: {
-      fileSizeLimit: 500 * 1024 * 1024, // 500MB
+      fileSizeLimit: 100 * 1024 * 1024, // 100MB
       allowedMimeTypes: [
         'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg',
         'audio/x-m4a', 'audio/flac', 'audio/aac',
