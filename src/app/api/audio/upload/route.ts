@@ -358,9 +358,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Audio Upload] 异常:", error);
-    const errMsg = error instanceof Error ? error.message : "服务器内部错误";
+    const rawMsg = error instanceof Error ? error.message : "服务器内部错误";
+    const userMsg = translateStorageError(rawMsg);
     return NextResponse.json(
-      { success: false, error: errMsg },
+      { success: false, error: userMsg },
       { status: 500 }
     );
   }
