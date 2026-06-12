@@ -16,6 +16,43 @@ const ALLOWED_TYPES = [
 
 const ALLOWED_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"];
 
+// 确保 audios bucket 存在且配置正确（仅首次调用时执行）
+let bucketEnsured = false;
+async function ensureAudiosBucket() {
+  if (bucketEnsured) return;
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    const { data: bucket } = await supabase.storage.getBucket("audios");
+    if (bucket) {
+      // 更新已有 bucket 配置（大小限制、MIME 类型）
+      await supabase.storage.updateBucket("audios", {
+        public: true,
+        fileSizeLimit: 100 * 1024 * 1024,
+        allowedMimeTypes: [
+          "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg",
+          "audio/x-m4a", "audio/flac", "audio/aac",
+        ],
+      });
+    } else {
+      // bucket 不存在，创建
+      await supabase.storage.createBucket("audios", {
+        public: true,
+        fileSizeLimit: 100 * 1024 * 1024,
+        allowedMimeTypes: [
+          "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg",
+          "audio/x-m4a", "audio/flac", "audio/aac",
+        ],
+      });
+    }
+    bucketEnsured = true;
+  } catch (err) {
+    console.warn("[Audio Upload] bucket 配置检查失败（不影响上传）:", err);
+    bucketEnsured = true; // 避免反复重试
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authUser = await getAuthUser();
@@ -62,6 +99,9 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       );
     }
+
+    // 确保 bucket 配置正确
+    await ensureAudiosBucket();
 
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 10);
