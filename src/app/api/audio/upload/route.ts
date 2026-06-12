@@ -52,7 +52,8 @@ async function ensureAudiosBucket() {
   } catch (err) {
     // updateBucket 失败通常是因为 Supabase JS SDK 对 fileSizeLimit 有校验，
     // 但我们已通过 SQL 直接改了数据库，所以这里忽略失败
-    console.warn("[Audio Upload] bucket 配置检查（忽略，数据库已设置）:", err.message);
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.warn("[Audio Upload] bucket 配置检查（忽略，数据库已设置）:", errMsg);
     bucketEnsured = true;
   }
 }
