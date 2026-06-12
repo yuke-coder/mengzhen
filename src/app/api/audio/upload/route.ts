@@ -19,6 +19,9 @@ const ALLOWED_TYPES = [
 const ALLOWED_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a", ".flac", ".aac"];
 
 let bucketEnsured = false;
+// 确保 audios bucket 存在且配置正确
+// 注意：数据库中 file_size_limit 已手动设置为 500MB，
+// 这里只设置 MIME 类型和 public 属性，不覆盖大小限制
 async function ensureAudiosBucket() {
   if (bucketEnsured) return;
   const supabase = getSupabaseClient();
@@ -27,9 +30,9 @@ async function ensureAudiosBucket() {
   try {
     const { data: bucket } = await supabase.storage.getBucket("audios");
     if (bucket) {
+      // 仅更新 public 属性和 MIME 类型（不覆盖 fileSizeLimit，已手动设为 500MB）
       await supabase.storage.updateBucket("audios", {
         public: true,
-        fileSizeLimit: 100 * 1024 * 1024,
         allowedMimeTypes: [
           "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg",
           "audio/x-m4a", "audio/flac", "audio/aac",
@@ -38,7 +41,7 @@ async function ensureAudiosBucket() {
     } else {
       await supabase.storage.createBucket("audios", {
         public: true,
-        fileSizeLimit: 100 * 1024 * 1024,
+        fileSizeLimit: 500 * 1024 * 1024,
         allowedMimeTypes: [
           "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg",
           "audio/x-m4a", "audio/flac", "audio/aac",
@@ -47,7 +50,9 @@ async function ensureAudiosBucket() {
     }
     bucketEnsured = true;
   } catch (err) {
-    console.warn("[Audio Upload] bucket 配置检查失败:", err);
+    // updateBucket 失败通常是因为 Supabase JS SDK 对 fileSizeLimit 有校验，
+    // 但我们已通过 SQL 直接改了数据库，所以这里忽略失败
+    console.warn("[Audio Upload] bucket 配置检查（忽略，数据库已设置）:", err.message);
     bucketEnsured = true;
   }
 }
