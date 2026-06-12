@@ -13,14 +13,40 @@ export async function GET(request: NextRequest) {
   const fileKey = searchParams.get("fileKey");
   if (!fileKey) return NextResponse.json({ error: "缺少 fileKey" }, { status: 400 });
 
-  const { data, error } = await supabase
+  // 先查 audio_files 表
+  const { data: fileData, error: fileError } = await supabase
     .from("audio_files")
     .select("id, user_id, path, name, size, mime_type, metadata, created_at")
     .eq("user_id", user.id)
     .eq("path", fileKey)
     .maybeSingle();
 
-  if (error || !data) {
+  if (fileData && !fileError) {
+    const { data: urlData } = supabase.storage.from("audios").getPublicUrl(fileKey);
+    return NextResponse.json({
+      success: true,
+      audio: {
+        id: fileData.id,
+        name: fileData.name,
+        path: fileData.path,
+        size: fileData.size,
+        mime_type: fileData.mime_type,
+        metadata: fileData.metadata,
+        created_at: fileData.created_at,
+        serverUrl: urlData?.publicUrl || `/api/audio/proxy?key=${encodeURIComponent(fileKey)}`,
+      }
+    });
+  }
+
+  // 回退查 audios 表（save_to_files=false 时记录在此）
+  const { data: audioData, error: audioError } = await supabase
+    .from("audios")
+    .select("id, title, file_key, file_name, file_size, mime_type, duration, created_at")
+    .eq("user_id", user.id)
+    .eq("file_key", fileKey)
+    .maybeSingle();
+
+  if (audioError || !audioData) {
     return NextResponse.json({ error: "音频不存在" }, { status: 404 });
   }
 
@@ -29,13 +55,13 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     audio: {
-      id: data.id,
-      name: data.name,
-      path: data.path,
-      size: data.size,
-      mime_type: data.mime_type,
-      metadata: data.metadata,
-      created_at: data.created_at,
+      id: audioData.id,
+      name: audioData.file_name || audioData.title,
+      path: audioData.file_key,
+      size: audioData.file_size,
+      mime_type: audioData.mime_type,
+      metadata: { duration: audioData.duration },
+      created_at: audioData.created_at,
       serverUrl: urlData?.publicUrl || `/api/audio/proxy?key=${encodeURIComponent(fileKey)}`,
     }
   });
