@@ -73,13 +73,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { success: false, error: `音频文件不能超过 ${MAX_FILE_SIZE / (1024 * 1024)}MB` },
-        { status: 400 }
-      );
-    }
-
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
     const typeOk = ALLOWED_TYPES.includes(file.type) || file.type.startsWith("audio/") || file.type === "";
     const extOk = ALLOWED_EXTENSIONS.includes(ext);
