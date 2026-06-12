@@ -95,7 +95,7 @@ function ProfileLayoutInner({ children }: { children: React.ReactNode }) {
         <StarryBackground />
       </div>
 
-      <header className="fixed top-0 left-0 right-0 z-[9999] bg-background/80 backdrop-blur-xl border-b border-border/50">
+      <header className="fixed top-0 left-0 right-0 z-[9999] isolation-isolate bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between relative">
           <div className="flex items-center gap-4 z-30">
             <Link href="/" className="flex items-center gap-3 group">
