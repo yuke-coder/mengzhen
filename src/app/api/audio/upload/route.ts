@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/storage/database/supabase-client";
 import { getAuthUser } from "@/lib/auth";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+export const config = {
+  api: {
+    bodySizeLimit: "500mb",
+  },
+};
+
 const ALLOWED_TYPES = [
   "audio/mpeg",
   "audio/wav",
