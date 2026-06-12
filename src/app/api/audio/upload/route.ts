@@ -8,7 +8,7 @@ export const maxDuration = 60;
 
 export const config = {
   api: {
-    bodySizeLimit: "500mb",
+    bodySizeLimit: "100mb",
   },
 };
 
