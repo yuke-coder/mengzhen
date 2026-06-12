@@ -64,6 +64,27 @@ function extractBoundary(contentType: string): string | null {
   return match[1] || match[2] || null;
 }
 
+// 将 Supabase 的英文错误信息转换为友好的中文提示
+function translateStorageError(rawMessage: string): string {
+  const msg = (rawMessage || "").toLowerCase();
+  if (msg.includes("exceeded the maximum allowed") || msg.includes("file size") || msg.includes("too large")) {
+    return "音频文件超过存储平台的单文件大小限制，请压缩或分段上传";
+  }
+  if (msg.includes("invalid content type") || msg.includes("mime") || msg.includes("content-type")) {
+    return "不支持的音频格式，请上传 MP3 / WAV / OGG / M4A / FLAC 等格式";
+  }
+  if (msg.includes("not found") || msg.includes("bucket") && msg.includes("not")) {
+    return "存储空间未配置，请联系管理员";
+  }
+  if (msg.includes("unauthorized") || msg.includes("permission") || msg.includes("forbidden")) {
+    return "上传权限不足，请重新登录后再试";
+  }
+  if (msg.includes("network") || msg.includes("timeout") || msg.includes("econn")) {
+    return "网络连接异常，请检查网络后重试";
+  }
+  return rawMessage || "上传失败，请重试";
+}
+
 // 从 multipart body 中解析出文件字段（name="audio"）
 // 返回 { fileBuffer, filename, contentType } 或 null
 function parseMultipartFile(
