@@ -72,7 +72,6 @@ const dragStyles = `
   }
 `;
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_FILES = 20;
 const ALLOWED_TYPES = [
   "audio/mpeg",
