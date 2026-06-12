@@ -37,7 +37,7 @@ async function ensureAudiosBucket() {
       // 更新已有 bucket 配置（大小限制、MIME 类型）
       await supabase.storage.updateBucket("audios", {
         public: true,
-        fileSizeLimit: 0,
+        fileSizeLimit: 500 * 1024 * 1024,
         allowedMimeTypes: [
           "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg",
           "audio/x-m4a", "audio/flac", "audio/aac",
@@ -47,7 +47,7 @@ async function ensureAudiosBucket() {
       // bucket 不存在，创建
       await supabase.storage.createBucket("audios", {
         public: true,
-        fileSizeLimit: 0,
+        fileSizeLimit: 500 * 1024 * 1024,
         allowedMimeTypes: [
           "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg",
           "audio/x-m4a", "audio/flac", "audio/aac",
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     if (uploadError) {
       console.error("[Audio Upload] 存储上传失败:", uploadError);
       return NextResponse.json(
-        { success: false, error: "上传失败，请重试" },
+        { success: false, error: uploadError.message || "上传失败，请重试" },
         { status: 500 }
       );
     }
@@ -181,8 +181,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Audio Upload] 异常:", error);
+    const errMsg = error instanceof Error ? error.message : "服务器内部错误";
     return NextResponse.json(
-      { success: false, error: "服务器内部错误" },
+      { success: false, error: errMsg },
       { status: 500 }
     );
   }
