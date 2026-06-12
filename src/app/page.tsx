@@ -463,7 +463,7 @@ export default function HomePage() {
                             </g>
                         </svg>
                     </div>
-                    <div className="relative z-1000 max-w-4xl mx-auto text-center space-y-10">
+                    <div className="relative z-10 max-w-4xl mx-auto text-center space-y-10">
                         {}
                         <div className="space-y-2">
                             <svg
