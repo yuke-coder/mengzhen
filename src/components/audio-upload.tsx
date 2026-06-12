@@ -652,6 +652,9 @@ export function AudioUpload({
 
 
   const validateFile = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `文件 "${file.name}" 超过 ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(0)}MB 限制`;
+    }
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
     // PWA standalone 模式下，部分浏览器可能不报告 MIME 类型（file.type 为空）
     // 此时仅通过扩展名验证
