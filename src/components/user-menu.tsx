@@ -170,7 +170,7 @@ export function UserMenu() {
             "absolute right-0 top-full mt-1.5 py-2 min-w-[240px] max-w-[300px]",
             "rounded-xl bg-background/95 backdrop-blur-xl",
             "border border-border/50 shadow-xl shadow-black/10",
-            "transition-all duration-200 ease-out origin-top-right z-[900]",
+            "transition-all duration-200 ease-out origin-top-right z-[10000]",
             isOpen
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
