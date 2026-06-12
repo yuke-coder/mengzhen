@@ -158,15 +158,19 @@ export default function HistoryPage() {
       <div className="max-w-3xl mx-auto px-4 pt-24 pb-12">
         {/* 顶部 */}
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/settings">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <RefreshCw className="w-5 h-5" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            onClick={() => fetchAudios()}
+            disabled={loading}
+          >
+            <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
+          </Button>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">历史记录</h1>
+            <h1 className="text-2xl font-bold text-foreground">我的音频</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              共 {audios.length} 条播放记录
+              共 {audios.length} 条音频记录
             </p>
           </div>
         </div>
@@ -183,12 +187,12 @@ export default function HistoryPage() {
               <Music className="w-8 h-8 text-muted-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-foreground font-medium">暂无历史记录</p>
-              <p className="text-sm text-muted-foreground mt-1">在设置页播放音频后会自动记录</p>
+              <p className="text-foreground font-medium">暂无音频记录</p>
+              <p className="text-sm text-muted-foreground mt-1">上传音频后将在这里显示</p>
             </div>
             <Link href="/settings">
               <Button className="mt-2 gap-2 bg-gradient-to-r from-pink-500 to-purple-500">
-                去设置
+                去上传
               </Button>
             </Link>
           </div>
