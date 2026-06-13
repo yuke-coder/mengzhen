@@ -211,11 +211,11 @@ export default function Navbar({ activePage, onScrollToSection }: NavbarProps) {
           )}
         </nav>
 
-        {/* 右侧：用户菜单 + 主题切换（登录/注册页隐藏） */}
-        <div className="z-10 flex items-center gap-3">
-          <UserMenu />
-          {!isAuthPage && <ThemeToggle />}
-        </div>
+         {/* 右侧：用户菜单 + 主题切换（登录/注册页隐藏） */}
+         <div className="z-10 flex items-center gap-3">
+            {!isAuthPage && <UserMenu />}
+           {!isAuthPage && <ThemeToggle />}
+         </div>
       </div>
     </header>
   );

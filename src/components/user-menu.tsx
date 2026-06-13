@@ -146,23 +146,23 @@ export function UserMenu() {
 
     return (
       <div className="relative" ref={menuRef} onMouseLeave={delayedHide}>
-        <button
-          onMouseEnter={() => { cancelDelayedHide(); setIsOpen(true); }}
-          className={cn(
+         <button
+           onMouseEnter={() => { cancelDelayedHide(); setIsOpen(true); }}
+           className={cn(
             "w-9 h-9 rounded-full overflow-hidden",
-            "border-2 border-[var(--brand-start)]/30",
-            "transition-all duration-250",
-            "hover:opacity-60 hover:shadow-lg hover:shadow-[var(--brand-start)]/25 hover:border-[var(--brand-start)]/60",
-            "focus:outline-none focus:ring-2 focus:ring-[var(--brand-start)]/40 focus:ring-offset-2 focus:ring-offset-background"
-          )}
-        >
-          {hasCustomAvatar && user.avatar_url ? (
-            <img src={user.avatar_url} alt="头像" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[var(--brand-start)]/20 to-[var(--brand-end)]/20 flex items-center justify-center">
-              <User className="w-1/2 h-1/2 text-[var(--brand-end)]" />
-            </div>
-          )}
+           "border-2 border-[var(--brand-start)]/30",
+           "transition-all duration-250",
+           "hover:opacity-60 hover:shadow-lg hover:shadow-[var(--brand-start)]/25 hover:border-[var(--brand-start)]/60",
+           "focus:outline-none focus:ring-2 focus:ring-[var(--brand-start)]/40 focus:ring-offset-2 focus:ring-offset-background"
+         )}
+       >
+         {hasCustomAvatar && user.avatar_url ? (
+            <img src={user.avatar_url} alt="头像" className="block w-full h-full object-cover" />
+         ) : (
+           <div className="w-full h-full bg-gradient-to-br from-[var(--brand-start)]/20 to-[var(--brand-end)]/20 flex items-center justify-center">
+             <User className="w-1/2 h-1/2 text-[var(--brand-end)]" />
+           </div>
+         )}
         </button>
 
         <div

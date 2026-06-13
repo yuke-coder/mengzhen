@@ -493,9 +493,9 @@ export function AnimatedLoginPage() {
         <div className="absolute bottom-1/4 left-1/4 size-96 bg-white/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Right Login Section */}
-      <div className="relative z-10 flex items-center justify-center p-8">
-        <div className="w-full max-w-[420px]">
+     {/* Right Login Section */}
+      <div className="relative z-10 flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-[420px] bg-black/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8">
           {/* Header */}
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-tight mb-2">欢迎回来</h1>
@@ -517,7 +517,7 @@ export function AnimatedLoginPage() {
                 onBlur={() => setIsTyping(false)}
                 required
                 disabled={isLoading}
-                className="h-12 w-full px-4 rounded-xl bg-background border border-border/60 focus:border-[var(--brand-start)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-start)]/20 transition-all"
+                className="h-12 w-full px-4 rounded-xl bg-transparent border border-white/30 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all text-white placeholder:text-white/50"
               />
             </div>
 
@@ -532,7 +532,7 @@ export function AnimatedLoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="h-12 w-full px-4 pr-10 rounded-xl bg-background border border-border/60 focus:border-[var(--brand-start)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-start)]/20 transition-all"
+                  className="h-12 w-full px-4 pr-10 rounded-xl bg-transparent border border-white/30 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all text-white placeholder:text-white/50"
                 />
                 <button
                   type="button"
