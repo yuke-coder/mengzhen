@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getSupabaseClient } from "@/storage/database/supabase-client";
+import { getSupabaseClient } from "@/lib/supabase-client";
+
+export const dynamic = 'force-dynamic';
 
 const SESSION_COOKIE_NAME = "mindmap_session";
 

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
-import { getSupabaseClient } from '@/storage/database/supabase-client';
+import { getSupabaseClient } from '@/lib/supabase-client';
+
+export const dynamic = 'force-dynamic';
 
 const SESSION_COOKIE_NAME = 'mindmap_session';
 // 持久化登录：1年有效期（秒）
@@ -89,6 +91,9 @@ export async function POST(request: NextRequest) {
 
     const isDev = process.env.NODE_ENV === 'development';
     const cookieStore = await cookies();
+    
+    // 生产环境：secure=true，确保移动端 HTTPS 环境能正常接收 cookie
+    // sameSite='lax' 在移动端兼容性最好，支持同源请求
     cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
       httpOnly: true,
       secure: !isDev,
@@ -97,7 +102,13 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    console.log('[Login] Cookie set:', SESSION_COOKIE_NAME, '=', sessionToken.substring(0, 10) + '...');
+    console.log('[Login] Cookie 已设置:', {
+      name: SESSION_COOKIE_NAME,
+      token: sessionToken.substring(0, 10) + '...',
+      isDev,
+      secure: !isDev,
+      sameSite: 'lax',
+    });
 
     return NextResponse.json({
       success: true,
