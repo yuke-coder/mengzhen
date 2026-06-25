@@ -323,6 +323,222 @@ function FloatingBar(
     );
 }
 
+const heroChips: { icon: IconComponent; text: string }[] = [
+    { icon: Music, text: "多格式音频适配" },
+    { icon: Clock, text: "时段自定义配置" },
+    { icon: Volume2, text: "精细化音量管控" }
+];
+
+const heroNodes = [
+    { x: 200, y: 300, r: 4, delay: 0 },
+    { x: 400, y: 200, r: 3, delay: 0.2 },
+    { x: 600, y: 400, r: 5, delay: 0.4 },
+    { x: 800, y: 250, r: 3, delay: 0.6 },
+    { x: 1000, y: 350, r: 4, delay: 0.8 },
+    { x: 300, y: 500, r: 3, delay: 1 },
+    { x: 700, y: 550, r: 4, delay: 1.2 },
+    { x: 500, y: 600, r: 3, delay: 1.4 }
+];
+
+const heroVariants = {
+    mobile: {
+        section: "relative sm:hidden min-h-[calc(100svh-56px)] flex flex-col items-center justify-start px-4 pt-4 pb-20 overflow-hidden",
+        content: "relative z-10 w-full max-w-[23rem] mx-auto text-center space-y-4",
+        title: "max-w-[22.5rem]",
+        titleFontSize: "clamp(70px, 15vw, 120px)",
+        subtitle: "PWA构建·云端同步·本地持久化",
+        subtitleClass: "flex-wrap gap-x-2 gap-y-1 max-w-[18rem] mx-auto text-xs leading-snug font-light",
+        explore: false
+    },
+    desktop: {
+        section: "relative hidden sm:flex min-h-[85vh] flex-col items-center justify-center px-6 overflow-hidden",
+        content: "relative z-10 w-full max-w-4xl mx-auto text-center space-y-10",
+        title: "max-w-4xl",
+        titleFontSize: undefined,
+        subtitle: "PWA渐进式网页应用构建·云端数据库数据持久化·Cookie客户端本地持久化存储",
+        subtitleClass: "text-lg md:text-xl max-w-xl mx-auto leading-relaxed font-light",
+        explore: true
+    }
+} as const;
+
+type HeroMode = keyof typeof heroVariants;
+type HeroProps = {
+    buttonRef: React.RefObject<HTMLButtonElement | null>;
+    onStart: () => void;
+};
+
+function HeroBackdrop({ id }: { id: string }) {
+    const nodeGlowId = `${id}NodeGlow`;
+    const lineGradId = `${id}LineGrad`;
+
+    return (
+        <div className="absolute inset-0 overflow-hidden">
+            <svg className="absolute inset-0 w-full h-full opacity-30 z-0" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                    <radialGradient id={nodeGlowId} cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="var(--brand-glow)" stopOpacity="0.6" />
+                        <stop offset="100%" stopColor="var(--brand-glow)" stopOpacity="0" />
+                    </radialGradient>
+                    <linearGradient id={lineGradId} x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="var(--brand-dim)" stopOpacity="0" />
+                        <stop offset="50%" stopColor="var(--brand-glow)" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="var(--brand-dim)" stopOpacity="0" />
+                    </linearGradient>
+                </defs>
+                <g>
+                    <path d="M100,400 Q300,200 500,350 T900,400" fill="none" stroke={`url(#${lineGradId})`} strokeWidth="1.5" strokeDasharray="8,4" className="animate-dash" />
+                    <path d="M200,500 Q400,600 600,450 T1100,300" fill="none" stroke={`url(#${lineGradId})`} strokeWidth="1" strokeDasharray="6,6" className="animate-dash-reverse" style={{ animationDelay: "1s" }} />
+                    <path d="M50,300 Q250,100 450,250 T850,150" fill="none" stroke="var(--brand-dim)" strokeWidth="0.8" strokeDasharray="4,8" className="animate-dash" style={{ animationDelay: "0.5s" }} />
+                </g>
+                <g>
+                    {heroNodes.map((node, i) => (
+                        <g key={i}>
+                            <circle cx={node.x} cy={node.y} r={node.r * 3} fill={`url(#${nodeGlowId})`} className="animate-pulse-slow" style={{ animationDelay: `${node.delay}s` }} />
+                            <circle cx={node.x} cy={node.y} r={node.r} fill="var(--brand-glow)" className="animate-glow" style={{ animationDelay: `${node.delay}s` }} />
+                        </g>
+                    ))}
+                </g>
+            </svg>
+        </div>
+    );
+}
+
+function HeroTitle({ className, fontSize = "clamp(56px, 12vw, 120px)", gradientId }: {
+    className?: string;
+    fontSize?: string;
+    gradientId: string;
+}) {
+    return (
+        <svg className={cn("w-full mx-auto", className)} viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#5EEDA0" />
+                    <stop offset="35%" stopColor="#40C78A" />
+                    <stop offset="50%" stopColor="#60C4A0" />
+                    <stop offset="65%" stopColor="#9055E0" />
+                    <stop offset="100%" stopColor="#A855F7" />
+                </linearGradient>
+            </defs>
+            <text x="50%" y="150" textAnchor="middle" dominantBaseline="middle" fontSize={fontSize} fontWeight="bold" fontFamily="system-ui, -apple-system, sans-serif" fill={`url(#${gradientId})`} style={{ boxShadow: "rgba(0, 0, 0, 0.15) 0px 0px 30px 0px" }}>
+                <tspan x="50%" dy="-0.5em" className="svg-char" style={{ ["--char-delay" as string]: "200ms" }}>星</tspan>
+                <tspan className="svg-char" style={{ ["--char-delay" as string]: "260ms" }}>河</tspan>
+                <tspan className="svg-char" style={{ ["--char-delay" as string]: "320ms" }}>入</tspan>
+                <tspan className="svg-char" style={{ ["--char-delay" as string]: "380ms" }}>眠</tspan>
+                <tspan x="50%" dy="1.2em" className="svg-char" style={{ ["--char-delay" as string]: "500ms" }}>伴</tspan>
+                <tspan className="svg-char" style={{ ["--char-delay" as string]: "560ms" }}>你</tspan>
+                <tspan className="svg-char" style={{ ["--char-delay" as string]: "620ms" }}>梦</tspan>
+                <tspan className="svg-char" style={{ ["--char-delay" as string]: "680ms" }}>枕</tspan>
+            </text>
+        </svg>
+    );
+}
+
+function HeroBadge({ mobile = false }: { mobile?: boolean }) {
+    return (
+        <div className={cn(
+            "group flex items-center rounded-full bg-gradient-to-r from-[var(--brand-start)]/20 to-[var(--brand-end)]/15 border border-[var(--brand-start)]/30 backdrop-blur-sm cursor-default",
+            "hover:border-[var(--brand-start)]/50 hover:from-[var(--brand-start)]/25 hover:to-[var(--brand-end)]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-out",
+            mobile ? "gap-2 px-4 py-2" : "gap-3 px-6 py-3"
+        )}>
+            <div className={cn("relative flex items-center", mobile ? "gap-1.5" : "gap-2")}>
+                <div className={cn("rounded-full bg-[var(--brand-start)] animate-pulse", mobile ? "w-2 h-2" : "w-2.5 h-2.5")} />
+                <span suppressHydrationWarning className={cn("text-[var(--brand-start)] font-semibold tracking-wide", mobile ? "text-xs" : "text-sm")}>
+                    {mobile ? "用户认证" : "用户认证系统"}
+                </span>
+            </div>
+            <div className={cn("w-px bg-[var(--brand-start)]/30", mobile ? "h-3.5" : "h-4")} />
+            {!mobile && <span suppressHydrationWarning className="text-sm text-foreground/70">全平台兼容</span>}
+            <span suppressHydrationWarning className={cn("text-[var(--brand-start)]/60 font-medium tracking-wide group-hover:font-bold group-hover:text-[var(--brand-start)] transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[var(--brand-start)] group-hover:after:w-full after:transition-all after:duration-300 after:ease-out", mobile ? "text-xs" : "text-sm")} style={{ fontFamily: "'Georgia', 'Cambria', 'Times New Roman', 'STKaiti', 'KaiTi', 'FangSong', serif" }}>
+                全自动流程
+            </span>
+        </div>
+    );
+}
+
+function HeroCta({ buttonRef, onClick, mobile = false }: {
+    buttonRef: React.RefObject<HTMLButtonElement | null>;
+    onClick: () => void;
+    mobile?: boolean;
+}) {
+    return (
+        <RippleButton
+            ref={buttonRef}
+            onClick={onClick}
+            className={cn(
+                "group relative inline-flex items-center bg-gradient-to-r from-[var(--brand-start)] to-[var(--brand-end)] text-white font-semibold text-lg shadow-xl shadow-[var(--brand-start)]/25 z-10",
+                "hover:z-20 transition-[transform,box-shadow,z-index] duration-300 hover:shadow-2xl hover:shadow-[var(--brand-start)]/35 hover:scale-105 active:scale-95",
+                mobile ? "gap-2.5 px-5 py-2.5 rounded-xl" : "gap-3 px-6 py-3 rounded-2xl"
+            )}>
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--brand-end)] to-[var(--brand-start)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 opacity-30">
+                <div className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+            </div>
+            <div className="relative flex items-center gap-3">
+                <img src="/logo.png" alt="梦枕" className={cn("group-hover:scale-110 transition-transform duration-300 rounded shadow-md", mobile ? "w-5 h-5" : "w-6 h-6")} />
+                <span className={mobile ? "text-xl" : "text-2xl"} style={{ fontFamily: "DOUYINSANSBOLD-GB", filter: "drop-shadow(rgb(161, 161, 170) 0px 0px 10px)" }} suppressHydrationWarning>免费体验</span>
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+            </div>
+        </RippleButton>
+    );
+}
+
+function HeroChips({ mobile = false }: { mobile?: boolean }) {
+    return (
+        <div className={cn("flex items-center justify-center", mobile ? "flex-nowrap gap-1.5 pt-2" : "flex-wrap gap-3 pt-2")}>
+            {heroChips.map((item, idx) => (
+                <div key={idx} className={cn("group flex items-center rounded-full bg-background/60 backdrop-blur-sm border border-border/50 hover:border-[var(--brand-glow)]/40 hover:bg-background/80 transition-all duration-300 cursor-default", mobile ? "gap-1 px-2 py-1.5" : "gap-2 px-4 py-2")}>
+                    <item.icon className={cn("text-[var(--brand-glow)] group-hover:scale-110 transition-transform", mobile ? "w-3 h-3" : "w-4 h-4")} />
+                    <span className="text-sm text-foreground/80 group-hover:text-foreground transition-colors" style={{ fontFamily: "DOUYINSANSBOLD-GB", fontWeight: "normal", fontSize: mobile ? "clamp(10px, 2.8vw, 16px)" : "16px" }}>{item.text}</span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function HeroExplore() {
+    return (
+        <RevealGroup delayBase={500}>
+            <div className="flex flex-col items-center gap-3 pt-8">
+                <span className="text-[11px] text-muted-foreground/40 tracking-[0.3em] uppercase" suppressHydrationWarning>向下探索</span>
+                <div className="relative w-6 h-10 rounded-full border border-border/30 flex items-start justify-center p-1.5">
+                    <div className="w-1.5 h-3 rounded-full bg-gradient-to-b from-[var(--brand-glow)] to-[var(--brand-dim)] animate-scroll-indicator" />
+                </div>
+            </div>
+        </RevealGroup>
+    );
+}
+
+function HeroView({ mode, buttonRef, onStart }: HeroProps & { mode: HeroMode }) {
+    const variant = heroVariants[mode];
+    const mobile = mode === "mobile";
+
+    return (
+        <section className={variant.section}>
+            <HeroBackdrop id={`${mode}Hero`} />
+            <div className={variant.content}>
+                <HeroTitle gradientId={`${mode}HeroTitle`} className={variant.title} fontSize={variant.titleFontSize} />
+                <WordReveal text={variant.subtitle} className={variant.subtitleClass} delayBase={1200} wordDelay={200} />
+                <RevealGroup delayBase={300}>
+                    <div className="inline-flex flex-col items-center gap-4">
+                        <HeroBadge mobile={mobile} />
+                        <HeroCta mobile={mobile} buttonRef={buttonRef} onClick={onStart} />
+                    </div>
+                    <HeroChips mobile={mobile} />
+                </RevealGroup>
+                {variant.explore && <HeroExplore />}
+            </div>
+        </section>
+    );
+}
+
+function MobileHero(props: HeroProps) {
+    return <HeroView mode="mobile" {...props} />;
+}
+
+function DesktopHero(props: HeroProps) {
+    return <HeroView mode="desktop" {...props} />;
+}
+
 export default function HomePage() {
     const router = useRouter();
     const { setTheme, resolvedTheme } = useTheme();
@@ -330,11 +546,16 @@ export default function HomePage() {
     const [selectedTemplates, setSelectedTemplates] = useState<MindMapTemplate[]>([]);
     const [recommendedTemplates, setRecommendedTemplates] = useState<MindMapTemplate[]>([]);
     const [isRecommending, setIsRecommending] = useState(false);
-    const heroButtonRef = useRef<HTMLButtonElement>(null);
+    const mobileHeroButtonRef = useRef<HTMLButtonElement>(null);
+    const desktopHeroButtonRef = useRef<HTMLButtonElement>(null);
     const bottomCtaRef = useRef<HTMLButtonElement>(null);
-    const heroButtonVisible = useScrollVisibility(heroButtonRef as React.RefObject<HTMLElement | null>);
+    const mobileHeroButtonVisible = useScrollVisibility(mobileHeroButtonRef as React.RefObject<HTMLElement | null>);
+    const desktopHeroButtonVisible = useScrollVisibility(desktopHeroButtonRef as React.RefObject<HTMLElement | null>);
     const bottomCtaVisible = useScrollVisibility(bottomCtaRef as React.RefObject<HTMLElement | null>);
-    const showFloatingBar = !heroButtonVisible && !bottomCtaVisible;
+    const showFloatingBar = !mobileHeroButtonVisible && !desktopHeroButtonVisible && !bottomCtaVisible;
+    const startExperience = useCallback(() => {
+        router.push(`/settings${selectedTemplates.length > 0 ? `?templates=${selectedTemplates.join(",")}` : ""}`);
+    }, [router, selectedTemplates]);
 
     const scrollToSection = (id: string) => {
         document.getElementById(id)?.scrollIntoView({
@@ -344,300 +565,12 @@ export default function HomePage() {
 
     return (
         <div
-            className="min-h-screen text-foreground overflow-x-hidden relative"
+            className="home-page min-h-screen text-foreground overflow-x-hidden relative"
             suppressHydrationWarning>
 
             <main className="relative">
-                {}
-                <section
-                    className="relative min-h-[85vh] flex flex-col items-center justify-center px-6 overflow-hidden">
-                    {}
-                    <div className="absolute inset-0 overflow-hidden">
-                        <svg
-                            className="absolute inset-0 w-full h-full opacity-30 z-0"
-                            viewBox="0 0 1200 800"
-                            preserveAspectRatio="xMidYMid slice">
-                            <defs>
-                                <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-                                    <stop offset="0%" stopColor="var(--brand-glow)" stopOpacity="0.6" />
-                                    <stop offset="100%" stopColor="var(--brand-glow)" stopOpacity="0" />
-                                </radialGradient>
-                                <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="var(--brand-dim)" stopOpacity="0" />
-                                    <stop offset="50%" stopColor="var(--brand-glow)" stopOpacity="0.8" />
-                                    <stop offset="100%" stopColor="var(--brand-dim)" stopOpacity="0" />
-                                </linearGradient>
-                            </defs>
-                            {}
-                            <g>
-                                <path
-                                    d="M100,400 Q300,200 500,350 T900,400"
-                                    fill="none"
-                                    stroke="url(#lineGrad)"
-                                    strokeWidth="1.5"
-                                    strokeDasharray="8,4"
-                                    className="animate-dash" />
-                                <path
-                                    d="M200,500 Q400,600 600,450 T1100,300"
-                                    fill="none"
-                                    stroke="url(#lineGrad)"
-                                    strokeWidth="1"
-                                    strokeDasharray="6,6"
-                                    className="animate-dash-reverse"
-                                    style={{
-                                        animationDelay: "1s"
-                                    }} />
-                                <path
-                                    d="M50,300 Q250,100 450,250 T850,150"
-                                    fill="none"
-                                    stroke="var(--brand-dim)"
-                                    strokeWidth="0.8"
-                                    strokeDasharray="4,8"
-                                    className="animate-dash"
-                                    style={{
-                                        animationDelay: "0.5s"
-                                    }} />
-                            </g>
-                            {}
-                            <g>
-                                {[{
-                                    x: 200,
-                                    y: 300,
-                                    r: 4,
-                                    delay: 0
-                                }, {
-                                    x: 400,
-                                    y: 200,
-                                    r: 3,
-                                    delay: 0.2
-                                }, {
-                                    x: 600,
-                                    y: 400,
-                                    r: 5,
-                                    delay: 0.4
-                                }, {
-                                    x: 800,
-                                    y: 250,
-                                    r: 3,
-                                    delay: 0.6
-                                }, {
-                                    x: 1000,
-                                    y: 350,
-                                    r: 4,
-                                    delay: 0.8
-                                }, {
-                                    x: 300,
-                                    y: 500,
-                                    r: 3,
-                                    delay: 1
-                                }, {
-                                    x: 700,
-                                    y: 550,
-                                    r: 4,
-                                    delay: 1.2
-                                }, {
-                                    x: 500,
-                                    y: 600,
-                                    r: 3,
-                                    delay: 1.4
-                                }].map((node, i) => <g key={i}>
-                                    <circle
-                                        cx={node.x}
-                                        cy={node.y}
-                                        r={node.r * 3}
-                                        fill="url(#nodeGlow)"
-                                        className="animate-pulse-slow"
-                                        style={{
-                                            animationDelay: `${node.delay}s`
-                                        }} />
-                                    <circle
-                                        cx={node.x}
-                                        cy={node.y}
-                                        r={node.r}
-                                        fill="var(--brand-glow)"
-                                        className="animate-glow"
-                                        style={{
-                                            animationDelay: `${node.delay}s`
-                                        }} />
-                                </g>)}
-                            </g>
-                        </svg>
-                    </div>
-                    <div className="relative z-10 max-w-4xl mx-auto text-center space-y-10">
-                        {}
-                        <div className="space-y-2">
-                            <svg
-                                className="w-full max-w-4xl mx-auto"
-                                viewBox="0 0 600 300"
-                                preserveAspectRatio="xMidYMid meet">
-                                <defs>
-                                    <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#5EEDA0" />
-                                        <stop offset="35%" stopColor="#40C78A" />
-                                        <stop offset="50%" stopColor="#60C4A0" />
-                                        <stop offset="65%" stopColor="#9055E0" />
-                                        <stop offset="100%" stopColor="#A855F7" />
-                                    </linearGradient>
-                                </defs>
-                                <text
-                                    x="50%"
-                                    y="150"
-                                    textAnchor="middle"
-                                    dominantBaseline="middle"
-                                    fontSize="clamp(56px, 12vw, 120px)"
-                                    fontWeight="bold"
-                                    fontFamily="system-ui, -apple-system, sans-serif"
-                                    fill="url(#titleGradient)"
-                                    style={{
-                                        boxShadow: "rgba(0, 0, 0, 0.15) 0px 0px 30px 0px"
-                                    }}>
-                                    {}
-                                    <tspan
-                                        x="50%"
-                                        dy="-0.5em"
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "200ms"
-                                        }}>星</tspan>
-                                    <tspan
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "260ms"
-                                        }}>河</tspan>
-                                    <tspan
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "320ms"
-                                        }}>入</tspan>
-                                    <tspan
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "380ms"
-                                        }}>眠</tspan>
-                                    {}
-                                    <tspan
-                                        x="50%"
-                                        dy="1.2em"
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "500ms"
-                                        }}>伴</tspan>
-                                    <tspan
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "560ms"
-                                        }}>你</tspan>
-                                    <tspan
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "620ms"
-                                        }}>梦</tspan>
-                                    <tspan
-                                        className="svg-char"
-                                        style={{
-                                            ["--char-delay" as string]: "680ms"
-                                        }}>枕</tspan>
-                                </text>
-                            </svg>
-                        </div>
-                        {}
-                        <WordReveal
-                            text="PWA渐进式网页应用构建·云端数据库数据持久化·Cookie客户端本地持久化存储"
-                            className="text-lg md:text-xl max-w-xl mx-auto leading-relaxed font-light"
-                            delayBase={1200}
-                            wordDelay={200} />
-                        {}
-                        <RevealGroup delayBase={300}>
-                            <div className="inline-flex flex-col items-center gap-4">
-                                {}
-                                <div
-                                    className="group flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-[var(--brand-start)]/20 to-[var(--brand-end)]/15 border border-[var(--brand-start)]/30 backdrop-blur-sm hover:border-[var(--brand-start)]/50 hover:from-[var(--brand-start)]/25 hover:to-[var(--brand-end)]/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-default">
-                                    <div className="relative flex items-center gap-2">
-                                        <div
-                                            className="w-2.5 h-2.5 rounded-full bg-[var(--brand-start)] animate-pulse" />
-                                        <span suppressHydrationWarning className="text-[var(--brand-start)] font-semibold text-sm tracking-wide">用户认证系统</span>
-                                    </div>
-                                    <div className="w-px h-4 bg-[var(--brand-start)]/30" />
-                                    <span suppressHydrationWarning className="text-sm text-foreground/70">全平台兼容</span>
-                                    <span suppressHydrationWarning 
-                                        className="text-sm text-[var(--brand-start)]/60 font-medium tracking-wide group-hover:font-bold group-hover:text-[var(--brand-start)] transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[var(--brand-start)] group-hover:after:w-full after:transition-all after:duration-300 after:ease-out"
-                                        style={{ fontFamily: "'Georgia', 'Cambria', 'Times New Roman', 'STKaiti', 'KaiTi', 'FangSong', serif" }}>
-                                        全自动流程
-                                    </span>
-                                </div>
-                                {}
-                                <RippleButton
-                                    ref={heroButtonRef}
-                                    onClick={() => router.push(
-                                        `/settings${selectedTemplates.length > 0 ? `?templates=${selectedTemplates.join(",")}` : ""}`
-                                    )}
-                                    className="group relative inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-[var(--brand-start)] to-[var(--brand-end)] text-white font-semibold text-lg shadow-xl shadow-[var(--brand-start)]/25 z-10 hover:z-20 transition-[transform,box-shadow,z-index] duration-300 hover:shadow-2xl hover:shadow-[var(--brand-start)]/35 hover:scale-105 active:scale-95">
-                                    {}
-                                    <div
-                                        className="absolute inset-0 bg-gradient-to-r from-[var(--brand-end)] to-[var(--brand-start)] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    {}
-                                    <div className="absolute inset-0 opacity-30">
-                                        <div
-                                            className="absolute inset-0 bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-                                    </div>
-                                    {}
-                                    <div className="relative flex items-center gap-3">
-                                        <img 
-                                            src="/logo.png" 
-                                            alt="梦枕" 
-                                            className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 rounded shadow-md" 
-                                        />
-                                        <span
-                                            style={{
-                                                fontFamily: "DOUYINSANSBOLD-GB",
-                                                fontSize: "24px",
-                                                filter: "drop-shadow(rgb(161, 161, 170) 0px 0px 10px)"
-                                            }} suppressHydrationWarning>免费体验</span>
-                                        <ChevronRight
-                                            className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                                    </div>
-                                </RippleButton>
-                            </div>
-                            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                                {[{
-                                    icon: Music,
-                                    text: "多格式音频适配"
-                                }, {
-                                    icon: Clock,
-                                    text: "时段自定义配置"
-                                }, {
-                                    icon: Volume2,
-                                    text: "精细化音量管控"
-                                }].map((item, idx) => <div
-                                    key={idx}
-                                    className="group flex items-center gap-2 px-4 py-2 rounded-full bg-background/60 backdrop-blur-sm border border-border/50 hover:border-[var(--brand-glow)]/40 hover:bg-background/80 transition-all duration-300 cursor-default">
-                                    <item.icon
-                                        className="w-4 h-4 text-[var(--brand-glow)] group-hover:scale-110 transition-transform" />
-                                    <span
-                                        className="text-sm text-foreground/80 group-hover:text-foreground transition-colors"
-                                        style={{
-                                            fontFamily: "DOUYINSANSBOLD-GB",
-                                            fontWeight: "normal",
-                                            fontSize: "16px"
-                                        }}>{item.text}</span>
-                                </div>)}
-                            </div>
-                        </RevealGroup>
-                        {}
-                        <RevealGroup delayBase={500}>
-                            <div className="flex flex-col items-center gap-3 pt-8">
-                                <span
-                                    className="text-[11px] text-muted-foreground/40 tracking-[0.3em] uppercase" suppressHydrationWarning>向下探索</span>
-                                <div
-                                    className="relative w-6 h-10 rounded-full border border-border/30 flex items-start justify-center p-1.5">
-                                    <div
-                                        className="w-1.5 h-3 rounded-full bg-gradient-to-b from-[var(--brand-glow)] to-[var(--brand-dim)] animate-scroll-indicator" />
-                                </div>
-                            </div>
-                        </RevealGroup>
-                    </div>
-                </section>
-                {}
+                <MobileHero buttonRef={mobileHeroButtonRef} onStart={startExperience} />
+                <DesktopHero buttonRef={desktopHeroButtonRef} onStart={startExperience} />
                 <LazySection>
                 <section id="features" className="py-32 px-6 relative overflow-hidden">
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">

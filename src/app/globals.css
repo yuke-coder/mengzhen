@@ -375,15 +375,17 @@
   a:hover,
   [class*="hover:"]:hover,
   .group:hover [class*="group-hover:"] {
-    transform: none !important;
-    box-shadow: none !important;
-    opacity: unset !important;
-    scale: unset !important;
-    translate: unset !important;
-    filter: unset !important;
-    background-color: unset !important;
-    border-color: unset !important;
-    color: unset !important;
+    transform: revert-layer !important;
+    box-shadow: revert-layer !important;
+    opacity: revert-layer !important;
+    scale: revert-layer !important;
+    translate: revert-layer !important;
+    filter: revert-layer !important;
+    background: revert-layer !important;
+    background-color: revert-layer !important;
+    background-image: revert-layer !important;
+    border-color: revert-layer !important;
+    color: revert-layer !important;
   }
 
   .group:hover .group-hover\:scale-110,
@@ -396,9 +398,9 @@
   .group:hover .group-hover\:shadow-xl,
   .group:hover .group-hover\:shadow-2xl,
   .group:hover .group-hover\:shadow-\[var\(--brand-start\)\]\/50 {
-    transform: none !important;
-    box-shadow: none !important;
-    opacity: unset !important;
+    transform: revert-layer !important;
+    box-shadow: revert-layer !important;
+    opacity: revert-layer !important;
   }
 
   *:hover {
@@ -1524,4 +1526,3 @@ button:disabled,
 .dark .glass {
   background: rgba(255, 255, 255, 0.04);
 }
-

@@ -216,19 +216,21 @@ export function UserMenu() {
     <div className="flex items-center gap-2">
       <Link
         href="/auth/login"
+        title="登录"
         className={cn(
-          "flex items-center gap-2 px-4 py-2 rounded-full",
+          "flex items-center gap-2 px-4 py-2 rounded-full max-[430px]:px-2.5",
           "text-sm text-muted-foreground hover:text-foreground",
           "hover:bg-[var(--brand-start)]/5 transition-all duration-200"
         )}
       >
         <LogIn className="w-4 h-4" />
-        <span>登录</span>
+        <span className="max-[430px]:hidden">登录</span>
       </Link>
       <Link
         href="/auth/register"
+        title="注册"
         className={cn(
-          "flex items-center gap-2 px-4 py-2 rounded-full",
+          "flex items-center gap-2 px-4 py-2 rounded-full max-[430px]:px-3",
           "text-sm font-medium text-white",
           "bg-gradient-to-r from-[var(--brand-start)] to-[var(--brand-end)]",
           "hover:shadow-lg hover:shadow-[var(--brand-start)]/30",
