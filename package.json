@@ -4,10 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "build-win": "scripts\\build.bat",
     "dev": "npx next dev --port 5000",
     "lint": "eslint",
-    "start": "bash ./scripts/start.sh",
     "ts-check": "tsc -p tsconfig.json"
   },
   "dependencies": {
